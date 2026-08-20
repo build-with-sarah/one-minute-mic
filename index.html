@@ -995,8 +995,9 @@ function calibrate(){
   setTimeout(()=>{
     clearInterval(t);
     readings.sort((a,b)=>a-b);
-    const median = readings[Math.floor(readings.length/2)]||0;
-    state.floor = Math.max(0.015, median*2.6);
+    // 20th percentile, not the median: a word spoken mid-window must not poison the floor
+    const p20 = readings[Math.floor(readings.length*0.2)]||0;
+    state.floor = Math.min(0.05, Math.max(0.006, p20*2.6));
     state.floorSet = true;
   },500);
 }
@@ -1167,14 +1168,25 @@ function startRound(){
 }
 
 /* One master loop drives the lobby meter and the live round. */
+const DEBUG=new URLSearchParams(location.search).has('debug');
+let dbgEl=null;
 function frame(){
   requestAnimationFrame(frame);
   if (!state.micReady) return;
 
   const v=rms();
-  // EMA: snappy on the way up, calmer on the way down
-  state.smoothed += (v>state.smoothed?0.2:0.4)*(v-state.smoothed);
-  state.talking = state.floorSet && state.smoothed > state.floor;
+  // EMA: fast up, slow down, so the dips between syllables never read as silence
+  state.smoothed += (v>state.smoothed?0.5:0.15)*(v-state.smoothed);
+  // hysteresis: once talking, only drop out well below the floor
+  state.talking = state.floorSet && state.smoothed > (state.talking?state.floor*0.7:state.floor);
+  if (DEBUG){
+    if (!dbgEl){
+      dbgEl=document.createElement('div');
+      dbgEl.style.cssText='position:fixed;bottom:8px;left:8px;z-index:99;font:12px ui-monospace,monospace;background:#000c;color:#7cfc00;padding:4px 8px;border-radius:4px;pointer-events:none;';
+      document.body.appendChild(dbgEl);
+    }
+    dbgEl.textContent=v.toFixed(3)+' raw / '+state.smoothed.toFixed(3)+' level / '+state.floor.toFixed(3)+' floor / '+(state.talking?'TALKING':'quiet');
+  }
 
   state.levels.push(state.smoothed);
   if (state.levels.length>LIVE_BARS) state.levels.shift();
