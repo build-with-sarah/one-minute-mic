@@ -1112,14 +1112,14 @@ function lose(elapsed, quiet, selfBuzz){
 
   let headline;
   if (selfBuzz) headline='YOU RANG THE BELL.';
-  else if (sec<10) headline=(ONES[sec]||sec)+' SECONDS. '+(ONES[sec]||sec)+'.';
+  else if (sec<10) headline=(ONES[sec]||sec)+' SECOND'+(sec===1?'':'S')+'. '+(ONES[sec]||sec)+'.';
   else if (sec>=50) headline='SO CLOSE IT HURTS.';
   else headline=sec+' SECONDS.';
   $('lost-headline').textContent=headline;
 
   $('lost-body').textContent = selfBuzz
     ? 'You buzzed yourself out at '+fmtClock(elapsed).replace('00:','')+' seconds. Honourable, technically.'
-    : 'You went quiet for '+quiet.toFixed(1)+' seconds, which is '+(quiet-state.tol).toFixed(1)+' more than you agreed to. Rules are rules.';
+    : 'You went quiet for '+state.tol.toFixed(1)+' seconds. The deal was '+state.tol.toFixed(1)+'. Rules are rules.';
 
   $('lost-lasted').textContent=fmtClock(elapsed);
   $('lost-streak').textContent=(s.streak||0)+' → '+(s.streak||0);
@@ -1263,7 +1263,7 @@ document.querySelectorAll('.key').forEach(k=>{
       $('lost-topic').textContent=state.topic;
       $('lost-at').textContent='silence detected at 00:05';
       $('lost-headline').textContent='FIVE SECONDS. FIVE.';
-      $('lost-body').textContent='You went quiet for 1.6 seconds, which is 0.1 more than you agreed to. Rules are rules.';
+      $('lost-body').textContent='You went quiet for 1.5 seconds. The deal was 1.5. Rules are rules.';
       $('lost-lasted').textContent='00:05';
       $('lost-streak').textContent='12 → 12';
       $('lost-attempts').textContent='7';
