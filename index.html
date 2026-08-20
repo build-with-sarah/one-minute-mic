@@ -113,11 +113,6 @@ b,strong{font-weight:700}
 .deck.on{color:var(--ink)}
 .deck.on.lime{background:var(--lime)}
 .deck.on.cyan{background:var(--cyan)}
-.tols{display:flex;flex-wrap:wrap;gap:12px}
-.tol{padding:14px 20px;background:var(--raised);color:var(--muted);text-align:left}
-.tol .v{font-family:var(--display);font-size:26px;line-height:1;display:block}
-.tol .c{font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;display:block;margin-top:4px}
-.tol.on{background:var(--magenta);color:var(--ink);outline:4px solid var(--lime);outline-offset:3px}
 
 .mic-panel{
   background:var(--ink);border:2px solid var(--raised);padding:26px;
@@ -278,7 +273,8 @@ b,strong{font-weight:700}
 .won-mid{display:grid;grid-template-columns:1fr 460px;gap:56px;align-items:center;min-height:0}
 .won-headline{
   text-transform:uppercase;
-  font-family:var(--display);font-size:clamp(96px,17vmin,220px);line-height:.8;letter-spacing:-8px;
+  /* Anton has near-zero sidebearings: negative px tracking makes strokes collide, keep it in em and tiny */
+  font-family:var(--display);font-size:clamp(96px,17vmin,220px);line-height:.94;letter-spacing:-0.01em;
   color:var(--ink);padding:14px 0;
 }
 .won-body{font-size:28px;font-weight:500;max-width:640px;line-height:1.4;margin:22px 0 30px}
@@ -371,10 +367,8 @@ streak
 
   <div class="lobby-mid">
     <div>
-      <p class="picker-label">Pick your topic decks</p>
+      <p class="picker-label">Pick your topic deck</p>
       <div class="decks" id="decks"></div>
-      <p class="picker-label" style="margin-top:12px">How long can you pause?</p>
-      <div class="tols" id="tols"></div>
     </div>
 
     <div class="mic-panel" id="mic-panel">
@@ -893,13 +887,6 @@ const DECKS = {
   ]}
 };
 
-const TOLERANCES = [
-  { s:0.8, caption:'Brutal' },
-  { s:1.5, caption:'House rules' },
-  { s:2.5, caption:'Generous' },
-  { s:4.0, caption:'Barely a game' }
-];
-
 const ROUND_S = 60;
 const SKIPS_PER_DAY = 3;
 const LIVE_BARS = 12, LOBBY_BARS = 11;
@@ -907,8 +894,8 @@ const LIVE_BARS = 12, LOBBY_BARS = 11;
 /* ---------- 2. STATE & STORAGE ---------- */
 const state = {
   screen:'lobby',
-  decks:new Set(['office','hottakes']),
-  tol:1.5,
+  decks:new Set(['office']),
+  tol:1.5, /* fixed house rule; the four-way picker was cut 20 Aug on Sarah's call */
   topic:'', deckKey:'office', cardIndex:0,
   micReady:false, micDenied:false,
   running:false, startedAt:0,
@@ -1055,21 +1042,11 @@ function renderLobby(){
     b.className='deck '+d.accent+(state.decks.has(key)?' on':'');
     b.innerHTML = d.label+'<small>'+d.topics.length+'</small>';
     b.onclick=()=>{
-      if (state.decks.has(key)){ if (state.decks.size>1) state.decks.delete(key); }
-      else state.decks.add(key);
-      store.write({decks:[...state.decks]});
+      state.decks=new Set([key]);
+      store.write({decks:[key]});
       renderLobby();
     };
     decks.appendChild(b);
-  });
-
-  const tols = $('tols'); tols.innerHTML='';
-  TOLERANCES.forEach(t=>{
-    const b=document.createElement('button');
-    b.className='tol'+(state.tol===t.s?' on':'');
-    b.innerHTML='<span class="v">'+t.s.toFixed(1)+'s</span><span class="c">'+t.caption+'</span>';
-    b.onclick=()=>{ state.tol=t.s; store.write({tol:t.s}); renderLobby(); };
-    tols.appendChild(b);
   });
 
   const worst = (s.worstExit!=null) ? s.worstExit.toFixed(1)+' seconds' : 'none yet';
@@ -1369,8 +1346,7 @@ document.addEventListener('keydown', e=>{
 (function boot(){
   checkStreak();
   const s=store.read();
-  if (Array.isArray(s.decks) && s.decks.every(k=>DECKS[k]) && s.decks.length) state.decks=new Set(s.decks);
-  if (TOLERANCES.some(t=>t.s===s.tol)) state.tol=s.tol;
+  if (Array.isArray(s.decks) && s.decks.length && DECKS[s.decks[0]]) state.decks=new Set([s.decks[0]]);
 
   buildBars($('mic-bars'), LOBBY_BARS);
   renderLobby();
