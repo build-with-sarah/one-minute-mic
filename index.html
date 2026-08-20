@@ -1,0 +1,717 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>One Minute Mic</title>
+<meta name="description" content="Get a random topic. Talk for 60 seconds. Pause and you are out. Runs entirely in your browser.">
+<style>
+  /* ---------------------------------------------------------------
+     Palette. Change these six values and the whole app is yours.
+  --------------------------------------------------------------- */
+  :root{
+    --wine-900:#4A0F27;
+    --wine-800:#5E1733;
+    --wine-700:#75203F;
+    --wine-500:#8E3355;
+    --wine-300:#A9536F;
+    --cream:#FBF6EE;
+    --acid:#DCDE72;
+
+    --bg:var(--cream);
+    --ink:var(--wine-900);
+    --muted:var(--wine-300);
+    --line:rgba(74,15,39,.14);
+    --radius:18px;
+    --font:"Helvetica Neue",Helvetica,Arial,system-ui,sans-serif;
+  }
+
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:var(--font);
+    -webkit-font-smoothing:antialiased;
+    display:flex;
+    flex-direction:column;
+    min-height:100dvh;
+    padding:env(safe-area-inset-top) 16px env(safe-area-inset-bottom);
+  }
+  button{font:inherit;color:inherit;cursor:pointer;border:none;background:none}
+  main{
+    flex:1;
+    width:100%;
+    max-width:640px;
+    margin:0 auto;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:28px;
+    padding:24px 0;
+  }
+
+  /* --- header --------------------------------------------------- */
+  header{
+    width:100%;max-width:640px;margin:0 auto;
+    display:flex;align-items:center;justify-content:space-between;
+    padding:18px 0 0;
+  }
+  .wordmark{
+    font-size:14px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;
+    display:flex;align-items:center;gap:8px;
+  }
+  .dot{width:9px;height:9px;border-radius:50%;background:var(--acid);display:inline-block}
+  .streak{
+    font-size:13px;font-weight:600;color:var(--wine-500);
+    background:rgba(142,51,85,.09);padding:6px 12px;border-radius:999px;
+  }
+
+  /* --- shared --------------------------------------------------- */
+  .eyebrow{
+    font-size:12px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;
+    color:var(--wine-300);
+  }
+  .btn{
+    display:block;width:100%;
+    background:var(--wine-800);color:var(--cream);
+    padding:20px 24px;border-radius:var(--radius);
+    font-size:19px;font-weight:700;letter-spacing:-.01em;
+    transition:transform .12s ease,background .12s ease;
+  }
+  .btn:hover{background:var(--wine-700)}
+  .btn:active{transform:scale(.985)}
+  .btn.ghost{
+    background:transparent;color:var(--wine-700);
+    border:1.5px solid var(--line);font-size:16px;padding:15px 20px;
+  }
+  .btn.ghost:hover{background:rgba(142,51,85,.06)}
+  .btn.acid{background:var(--acid);color:var(--wine-900)}
+  .btn.acid:hover{background:#e6e88a}
+  .hint{font-size:13px;color:var(--muted);text-align:center;line-height:1.5}
+  .screen{display:none;flex-direction:column;gap:28px}
+  .screen.on{display:flex}
+
+  /* --- home ----------------------------------------------------- */
+  h1{
+    font-size:clamp(38px,10vw,62px);line-height:.98;letter-spacing:-.035em;font-weight:800;
+  }
+  h1 em{font-style:normal;color:var(--wine-500)}
+  .lede{font-size:17px;line-height:1.55;color:var(--wine-700);max-width:34ch}
+  .picker{display:flex;flex-direction:column;gap:12px}
+  .row{display:flex;gap:8px;flex-wrap:wrap}
+  .chip{
+    padding:11px 16px;border-radius:999px;border:1.5px solid var(--line);
+    font-size:14px;font-weight:600;color:var(--wine-700);
+    transition:all .12s ease;
+  }
+  .chip[aria-pressed="true"]{
+    background:var(--wine-900);color:var(--cream);border-color:var(--wine-900);
+  }
+  .chip:hover:not([aria-pressed="true"]){border-color:var(--wine-300)}
+
+  /* --- topic ---------------------------------------------------- */
+  .topic-card{
+    background:#fff;border:1.5px solid var(--line);border-radius:26px;
+    padding:38px 30px;text-align:center;
+    box-shadow:0 1px 0 rgba(74,15,39,.05),0 18px 40px -30px rgba(74,15,39,.5);
+  }
+  .topic{
+    font-size:clamp(26px,6.4vw,40px);line-height:1.15;letter-spacing:-.02em;font-weight:800;
+    text-wrap:balance;
+  }
+  .wordlist{display:flex;flex-wrap:wrap;gap:10px;justify-content:center}
+  .word{
+    font-size:clamp(20px,5vw,30px);font-weight:800;letter-spacing:-.02em;
+    background:var(--acid);color:var(--wine-900);
+    padding:6px 14px;border-radius:10px;
+  }
+
+  /* --- live ----------------------------------------------------- */
+  .clock{
+    font-size:clamp(74px,22vw,132px);line-height:.9;font-weight:800;letter-spacing:-.05em;
+    text-align:center;font-variant-numeric:tabular-nums;
+  }
+  .clock.warn{color:var(--wine-500)}
+  .bar{height:8px;background:rgba(74,15,39,.1);border-radius:999px;overflow:hidden}
+  .bar > i{display:block;height:100%;background:var(--wine-800);width:100%;border-radius:999px}
+  .meter{
+    height:56px;border-radius:14px;border:1.5px solid var(--line);background:#fff;
+    display:flex;align-items:flex-end;gap:3px;padding:8px;overflow:hidden;
+  }
+  .meter span{
+    flex:1;background:var(--wine-300);border-radius:2px;height:4%;
+    transition:height .07s linear,background .07s linear;
+  }
+  .meter.quiet span{background:var(--wine-300);opacity:.4}
+  .pause-warn{
+    text-align:center;font-size:14px;font-weight:700;letter-spacing:.04em;
+    text-transform:uppercase;color:var(--wine-500);min-height:20px;
+  }
+
+  /* --- result --------------------------------------------------- */
+  .verdict{font-size:clamp(34px,9vw,54px);line-height:1;letter-spacing:-.03em;font-weight:800}
+  .stats{display:flex;gap:10px}
+  .stat{
+    flex:1;background:#fff;border:1.5px solid var(--line);border-radius:16px;
+    padding:16px 14px;text-align:center;
+  }
+  .stat b{display:block;font-size:26px;font-weight:800;letter-spacing:-.02em}
+  .stat small{display:block;font-size:11px;font-weight:700;letter-spacing:.1em;
+    text-transform:uppercase;color:var(--muted);margin-top:4px}
+
+  /* --- footer --------------------------------------------------- */
+  footer{
+    width:100%;max-width:640px;margin:0 auto;padding:16px 0 22px;
+    font-size:12.5px;line-height:1.6;color:var(--muted);text-align:center;
+  }
+  footer a{color:var(--wine-500)}
+  .kbd{
+    font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11px;
+    border:1px solid var(--line);border-radius:5px;padding:1px 5px;
+  }
+  @media (max-width:420px){ main{gap:22px} }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wordmark"><span class="dot"></span>One Minute Mic</div>
+  <div class="streak" id="streak">Day 0</div>
+</header>
+
+<main>
+
+  <!-- ============ HOME ============ -->
+  <section class="screen on" id="s-home">
+    <div>
+      <p class="eyebrow" style="margin-bottom:14px">The 60 second challenge</p>
+      <h1>Talk for a minute.<br><em>Do not pause.</em></h1>
+    </div>
+    <p class="lede">You get a random topic and sixty seconds. Go quiet for too long and you are out. That is the whole game.</p>
+
+    <div class="picker">
+      <p class="eyebrow">Pick your topics</p>
+      <div class="row" id="packs"></div>
+    </div>
+
+    <div class="picker">
+      <p class="eyebrow">How long you can pause</p>
+      <div class="row" id="levels"></div>
+    </div>
+
+    <button class="btn" id="go">Give me a topic</button>
+    <p class="hint">Nothing is recorded. Nothing is uploaded. The microphone is only used to tell talking from silence, inside this tab.</p>
+  </section>
+
+  <!-- ============ READY ============ -->
+  <section class="screen" id="s-ready">
+    <p class="eyebrow" id="ready-label">Your topic</p>
+    <div class="topic-card">
+      <div class="topic" id="topic-text"></div>
+      <div class="wordlist" id="topic-words" style="display:none"></div>
+    </div>
+    <button class="btn acid" id="start">Start the minute</button>
+    <div class="row" style="gap:8px">
+      <button class="btn ghost" id="reroll" style="flex:1">Another topic</button>
+      <button class="btn ghost" id="back" style="flex:1">Back</button>
+    </div>
+    <p class="hint">Hit start, then hold still for one second while it listens to the room.</p>
+  </section>
+
+  <!-- ============ LIVE ============ -->
+  <section class="screen" id="s-live">
+    <p class="eyebrow" id="live-topic" style="text-align:center"></p>
+    <div class="clock" id="clock">1:00</div>
+    <div class="bar"><i id="bar"></i></div>
+    <div class="meter" id="meter"></div>
+    <p class="pause-warn" id="warn">&nbsp;</p>
+    <button class="btn ghost" id="buzz">Buzz me out <span class="kbd">B</span></button>
+  </section>
+
+  <!-- ============ RESULT ============ -->
+  <section class="screen" id="s-result">
+    <div>
+      <p class="eyebrow" id="result-eyebrow">Result</p>
+      <p class="verdict" id="verdict"></p>
+    </div>
+    <p class="lede" id="result-note"></p>
+    <div class="stats">
+      <div class="stat"><b id="st-time">0s</b><small>You lasted</small></div>
+      <div class="stat"><b id="st-best">0s</b><small>Your best</small></div>
+      <div class="stat"><b id="st-clean">0</b><small>Clean minutes</small></div>
+    </div>
+    <button class="btn" id="again">Another one</button>
+    <button class="btn ghost" id="home">Back to the start</button>
+  </section>
+
+</main>
+
+<footer>
+  Open source. Copy it, change the topics, make it yours.<br>
+  <span class="kbd">Space</span> starts and restarts. <span class="kbd">B</span> buzzes you out.
+</footer>
+
+<script>
+/* =====================================================================
+   One Minute Mic
+   A random topic, a 60 second timer, and a microphone that only ever
+   asks one question: are you still talking?
+
+   Nothing leaves this file. No accounts, no keys, no network calls.
+   MIT licensed. Change the lists below and it is a different app.
+   ===================================================================== */
+
+/* ---------- 1. THE TOPICS. Edit these freely. ---------- */
+const PACKS = {
+  everyday: {
+    label: 'Everyday',
+    topics: [
+      'The best meal you have ever eaten',
+      'Something you are genuinely bad at',
+      'A place you go to think',
+      'The last thing that made you laugh out loud',
+      'Something you kept for far too long',
+      'How you take your coffee, and why',
+      'A rule your family had',
+      'The worst haircut you ever had',
+      'Something you are saving up for',
+      'A song you can never skip',
+      'The first job you ever had',
+      'Something you lost and never found',
+      'A smell that takes you straight back',
+      'How you spend a free Sunday',
+      'A skill you want but will never learn',
+      'The best advice you ignored',
+      'Something everyone likes that you do not',
+      'A stranger you still think about',
+      'Your morning, minute by minute',
+      'The last thing you fixed yourself',
+      'A book you never finished',
+      'Somewhere you would move to tomorrow',
+      'How you argue',
+      'A tradition you kept',
+      'The most useless thing you own',
+      'Something you are quietly superstitious about',
+      'What you would do with a free hour today',
+      'A photo you keep for no good reason',
+      'Something you learned far too late',
+      'The best thing about where you live',
+      'A time you got completely lost',
+      'What you do when you cannot sleep',
+      'The last text message you sent',
+      'A gift you still use',
+      'Something you pretend to understand',
+      'Your first memory',
+      'A queue you had to wait in',
+      'How you pack a suitcase',
+      'A day you would happily live again',
+      'The chair you always sit in'
+    ]
+  },
+  work: {
+    label: 'Work',
+    topics: [
+      'A meeting that should have been an email',
+      'The best manager you ever had',
+      'How you decide what to do first',
+      'A mistake that taught you something',
+      'Why your job is harder than it looks',
+      'The one tool you could not work without',
+      'How you say no',
+      'A deadline you missed',
+      'What you would change about your industry',
+      'How you prepare for a hard conversation',
+      'The worst interview question',
+      'Something you were promoted for',
+      'How you learn a new skill',
+      'A person who changed your career',
+      'What you do in the first hour of work',
+      'Why good people quit',
+      'How you handle being wrong in public',
+      'A project that failed',
+      'What good feedback sounds like',
+      'How you price your work',
+      'The part of your job nobody sees',
+      'A habit that made you better at your job',
+      'How you run a meeting',
+      'What you look for when you hire',
+      'The last thing you automated',
+      'How you explain your job to a child',
+      'A rule you quietly break at work',
+      'What burnout actually felt like',
+      'How you follow up without being annoying',
+      'The email you rewrote five times',
+      'Something you do that is not in your job description',
+      'How you decide to trust someone',
+      'A skill everyone says matters that does not',
+      'How you keep track of everything',
+      'What you wish you had asked for',
+      'A customer who taught you something',
+      'How you start a conversation with a stranger',
+      'The advice you give every beginner',
+      'What you would do differently on day one',
+      'The last thing you changed your mind about'
+    ]
+  },
+  opinions: {
+    label: 'Opinions',
+    topics: [
+      'Phones should be banned in schools',
+      'Being on time is a form of respect',
+      'Most advice is autobiography',
+      'Talent is overrated',
+      'Small talk is worth learning properly',
+      'Working from home makes you worse at your job',
+      'People should say what they earn',
+      'Everyone should be able to cook five meals',
+      'Fiction teaches you more than business books do',
+      'Meetings are where decisions go to die',
+      'Motivation is a myth',
+      'You learn more from teaching than from studying',
+      'Sport teaches you more than school does',
+      'Nobody needs a car in a city',
+      'You should quit things faster',
+      'Being busy is not the same as being useful',
+      'Handwriting still matters',
+      'Never take advice from someone with nothing to lose',
+      'Free time should not be optimised',
+      'Group projects are unfair',
+      'Ambition is a trait, not a choice',
+      'Say the number first',
+      'Confidence can be trained like a muscle',
+      'The customer is often wrong',
+      'Good design is invisible',
+      'Hard work is not the hard part',
+      'Everyone should speak in public once a month',
+      'Perfectionism is procrastination in a nice coat',
+      'Keep a hobby you are bad at',
+      'Comparison is useful in small doses',
+      'There is no such thing as self made',
+      'Write things down in front of people',
+      'Money changes people less than we think',
+      'Boredom is good for you',
+      'Everyone should serve customers for a year',
+      'Deadlines make better work than inspiration',
+      'Most rules are just old decisions',
+      'You should explain your job in one sentence',
+      'Silence is a skill',
+      'Practice beats confidence'
+    ]
+  }
+};
+
+/* The harder version of the trend: four random words, worked in naturally. */
+const WORDS = ['anchor','ladder','velvet','harbour','static','copper','thunder','pocket','marble','cactus',
+  'signal','tunnel','ribbon','glacier','engine','pepper','mirror','saddle','custard','lantern',
+  'compass','blanket','fossil','magnet','orbit','pigeon','rescue','shovel','trumpet','whisper',
+  'basket','candle','driftwood','elbow','ferry','gravel','hammock','island','jigsaw','kettle',
+  'lobster','mustard','needle','otter','parcel','quilt','rooftop','saucer','tractor','umbrella',
+  'violin','walnut','yoghurt','zipper','bramble','clockwork','domino','eyebrow','freckle','goblin',
+  'hedge','inkwell','jacket','kayak','lemon','mitten','nutmeg','onion','puddle','quarry',
+  'rhubarb','satchel','thimble','vault','waffle','anvil','bellow','crater','dusk','ember',
+  'fable','gully','hollow','iron','jolt','knot','lattice','moss','nudge','oath',
+  'plinth','quiver','rust','shard','trench','usher','vessel','wick','yield','zenith'];
+
+const LEVELS = [
+  { key:'easy',     label:'Easy · 3s',     ms:3000, mic:true },
+  { key:'standard', label:'Standard · 1.5s', ms:1500, mic:true },
+  { key:'brutal',   label:'Brutal · 0.8s', ms:800,  mic:true },
+  { key:'off',      label:'Timer only',   ms:0,    mic:false }
+];
+
+/* ---------- 2. STATE ---------- */
+const ROUND_MS = 60000;
+const BARS = 28;
+
+const state = {
+  pack: 'everyday',
+  level: 'standard',
+  topic: '',
+  words: [],
+  running: false,
+  startedAt: 0,
+  raf: 0,
+  lastLoud: 0,
+  micReady: false
+};
+
+const store = {
+  read(){
+    try { return JSON.parse(localStorage.getItem('omm') || '{}'); }
+    catch { return {}; }
+  },
+  write(patch){
+    const next = Object.assign(this.read(), patch);
+    try { localStorage.setItem('omm', JSON.stringify(next)); } catch {}
+    return next;
+  }
+};
+
+const $ = id => document.getElementById(id);
+const pick = list => list[Math.floor(Math.random() * list.length)];
+
+/* ---------- 3. AUDIO ---------- */
+let audioCtx = null, analyser = null, micStream = null, buffer = null, floor = 0.012;
+
+async function openMic(){
+  if (state.micReady) return true;
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) return false;
+  try {
+    micStream = await navigator.mediaDevices.getUserMedia({
+      audio: { echoCancellation:false, noiseSuppression:false, autoGainControl:false }
+    });
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    analyser = audioCtx.createAnalyser();
+    analyser.fftSize = 1024;
+    buffer = new Uint8Array(analyser.fftSize);
+    audioCtx.createMediaStreamSource(micStream).connect(analyser);
+    state.micReady = true;
+    return true;
+  } catch (err) {
+    return false;
+  }
+}
+
+/* Root mean square of the current audio frame, 0 to about 0.5 in practice. */
+function level(){
+  if (!analyser) return 0;
+  analyser.getByteTimeDomainData(buffer);
+  let sum = 0;
+  for (let i = 0; i < buffer.length; i++){
+    const v = (buffer[i] - 128) / 128;
+    sum += v * v;
+  }
+  return Math.sqrt(sum / buffer.length);
+}
+
+/* Listen to the empty room for a moment so a noisy kitchen does not count as talking. */
+function calibrate(ms){
+  return new Promise(resolve => {
+    const readings = [];
+    const t = setInterval(() => readings.push(level()), 40);
+    setTimeout(() => {
+      clearInterval(t);
+      readings.sort((a,b) => a - b);
+      const median = readings[Math.floor(readings.length / 2)] || 0;
+      floor = Math.max(0.012, median * 2.6);
+      resolve();
+    }, ms);
+  });
+}
+
+function beep(freq, ms, type){
+  try {
+    const ctx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+    const osc = ctx.createOscillator(), gain = ctx.createGain();
+    osc.type = type || 'sine';
+    osc.frequency.value = freq;
+    gain.gain.setValueAtTime(0.0001, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.18, ctx.currentTime + 0.01);
+    gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + ms/1000);
+    osc.connect(gain).connect(ctx.destination);
+    osc.start();
+    osc.stop(ctx.currentTime + ms/1000 + 0.02);
+  } catch {}
+}
+
+/* ---------- 4. SCREENS ---------- */
+function show(name){
+  document.querySelectorAll('.screen').forEach(s => s.classList.toggle('on', s.id === 's-' + name));
+  state.screen = name;
+}
+
+function buildChips(){
+  const packs = $('packs');
+  const entries = Object.keys(PACKS).map(k => [k, PACKS[k].label]).concat([['words','Four words']]);
+  packs.innerHTML = '';
+  entries.forEach(([key, label]) => {
+    const b = document.createElement('button');
+    b.className = 'chip';
+    b.textContent = label;
+    b.setAttribute('aria-pressed', String(state.pack === key));
+    b.onclick = () => { state.pack = key; store.write({pack:key}); buildChips(); };
+    packs.appendChild(b);
+  });
+
+  const levels = $('levels');
+  levels.innerHTML = '';
+  LEVELS.forEach(l => {
+    const b = document.createElement('button');
+    b.className = 'chip';
+    b.textContent = l.label;
+    b.setAttribute('aria-pressed', String(state.level === l.key));
+    b.onclick = () => { state.level = l.key; store.write({level:l.key}); buildChips(); };
+    levels.appendChild(b);
+  });
+}
+
+function currentLevel(){
+  return LEVELS.find(l => l.key === state.level) || LEVELS[1];
+}
+
+function newTopic(){
+  if (state.pack === 'words'){
+    const set = new Set();
+    while (set.size < 4) set.add(pick(WORDS));
+    state.words = [...set];
+    state.topic = 'Work all four in: ' + state.words.join(', ');
+    $('ready-label').textContent = 'Work these four words in, naturally';
+    $('topic-text').style.display = 'none';
+    const box = $('topic-words');
+    box.style.display = 'flex';
+    box.innerHTML = state.words.map(w => '<span class="word">' + w + '</span>').join('');
+  } else {
+    state.words = [];
+    state.topic = pick(PACKS[state.pack].topics);
+    $('ready-label').textContent = 'Your topic';
+    $('topic-words').style.display = 'none';
+    const t = $('topic-text');
+    t.style.display = 'block';
+    t.textContent = state.topic;
+  }
+  $('live-topic').textContent = state.pack === 'words' ? state.words.join(' · ') : state.topic;
+}
+
+function buildMeter(){
+  const m = $('meter');
+  m.innerHTML = '';
+  for (let i = 0; i < BARS; i++) m.appendChild(document.createElement('span'));
+}
+
+function fmt(ms){
+  const s = Math.max(0, Math.ceil(ms / 1000));
+  return (s >= 60) ? '1:00' : '0:' + String(s).padStart(2,'0');
+}
+
+/* ---------- 5. THE ROUND ---------- */
+async function start(){
+  show('live');
+  $('clock').textContent = '1:00';
+  $('clock').classList.remove('warn');
+  $('bar').style.width = '100%';
+  $('warn').textContent = 'Listening to the room';
+  $('meter').classList.add('quiet');
+
+  const lvl = currentLevel();
+  let micOn = false;
+  if (lvl.mic){
+    micOn = await openMic();
+    if (micOn) await calibrate(900);
+  }
+  if (lvl.mic && !micOn){
+    $('warn').textContent = 'No microphone, timer only';
+  } else {
+    $('warn').innerHTML = '&nbsp;';
+  }
+
+  for (const n of ['3','2','1']){
+    $('clock').textContent = n;
+    beep(520, 90);
+    await new Promise(r => setTimeout(r, 620));
+  }
+  beep(760, 150);
+  $('clock').textContent = '1:00';
+
+  state.running = true;
+  state.startedAt = performance.now();
+  state.lastLoud = state.startedAt;
+  const useMic = micOn && lvl.ms > 0;
+  const bars = [...$('meter').children];
+  $('meter').classList.remove('quiet');
+
+  const tick = () => {
+    if (!state.running) return;
+    const now = performance.now();
+    const elapsed = now - state.startedAt;
+    const left = ROUND_MS - elapsed;
+
+    $('clock').textContent = fmt(left);
+    $('clock').classList.toggle('warn', left < 10000);
+    $('bar').style.width = Math.max(0, (left / ROUND_MS) * 100) + '%';
+
+    if (useMic){
+      const v = level();
+      const h = Math.min(100, Math.max(4, (v / 0.22) * 100));
+      const b = bars.shift();
+      if (b){ b.style.height = h + '%'; b.style.background = v > floor ? 'var(--wine-700)' : 'var(--wine-300)'; bars.push(b); }
+      if (v > floor) state.lastLoud = now;
+
+      const quiet = now - state.lastLoud;
+      if (elapsed > 1200 && quiet > lvl.ms){
+        return end(false, elapsed, 'You went quiet for longer than ' + (lvl.ms/1000) + ' seconds.');
+      }
+      $('warn').textContent = (elapsed > 1200 && quiet > lvl.ms * 0.55) ? 'Keep going' : ' ';
+    }
+
+    if (left <= 0) return end(true, ROUND_MS, '');
+    state.raf = requestAnimationFrame(tick);
+  };
+  state.raf = requestAnimationFrame(tick);
+}
+
+function end(survived, elapsed, note){
+  state.running = false;
+  cancelAnimationFrame(state.raf);
+  beep(survived ? 880 : 180, survived ? 400 : 500, survived ? 'sine' : 'square');
+
+  const seconds = Math.min(60, Math.round(elapsed / 1000));
+  const saved = store.read();
+  const best = Math.max(saved.best || 0, seconds);
+  let clean = saved.clean || 0;
+  let day = saved.day || 0;
+  let lastDate = saved.lastDate || '';
+
+  if (survived){
+    clean += 1;
+    const today = new Date().toISOString().slice(0,10);
+    if (lastDate !== today){ day += 1; lastDate = today; }
+  }
+  store.write({ best, clean, day, lastDate });
+
+  $('result-eyebrow').textContent = survived ? 'Clean minute' : 'Buzzed out';
+  $('verdict').textContent = survived ? 'You made it.' : 'Out at ' + seconds + ' seconds.';
+  $('result-note').textContent = note || (survived
+    ? 'Sixty seconds, no dead air. Do it again with a harder pause setting.'
+    : 'Pausing is the only way to lose. Slow down instead of stopping.');
+  $('st-time').textContent = seconds + 's';
+  $('st-best').textContent = best + 's';
+  $('st-clean').textContent = clean;
+  paintStreak();
+  show('result');
+}
+
+function paintStreak(){
+  const s = store.read();
+  $('streak').textContent = 'Day ' + (s.day || 0);
+}
+
+/* ---------- 6. WIRING ---------- */
+$('go').onclick     = () => { newTopic(); show('ready'); };
+$('reroll').onclick = () => newTopic();
+$('back').onclick   = () => show('home');
+$('start').onclick  = () => start();
+$('buzz').onclick   = () => { if (state.running) end(false, performance.now() - state.startedAt, 'You buzzed yourself out.'); };
+$('again').onclick  = () => { newTopic(); show('ready'); };
+$('home').onclick   = () => show('home');
+
+document.addEventListener('keydown', e => {
+  if (e.code === 'Space'){
+    e.preventDefault();
+    if (state.screen === 'home')  return $('go').click();
+    if (state.screen === 'ready') return $('start').click();
+    if (state.screen === 'result')return $('again').click();
+  }
+  if (e.key === 'b' || e.key === 'B') $('buzz').click();
+});
+
+const saved = store.read();
+if (saved.pack && (PACKS[saved.pack] || saved.pack === 'words')) state.pack = saved.pack;
+if (saved.level && LEVELS.some(l => l.key === saved.level)) state.level = saved.level;
+buildChips();
+buildMeter();
+paintStreak();
+show('home');
+</script>
+</body>
+</html>
