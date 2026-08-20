@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Space+Mono:wght@400;700&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  body { margin:0; background:#0c0818; }
+  a { color:#d9ff3d; text-decoration:none; }
+  a:hover { color:#ff2e88; }
+  @keyframes pulse { 0%,100% { opacity:1 } 50% { opacity:.35 } }
+</style>
+</helmet>
+
+<div style="padding:64px; display:flex; flex-direction:column; gap:72px; font-family:'Space Grotesk',Helvetica,sans-serif; background:#0c0818;">
+
+  <div style="display:flex; align-items:baseline; gap:24px; flex-wrap:wrap;">
+    <div style="font-family:Anton; font-size:64px; color:#d9ff3d; letter-spacing:-1px; text-transform:uppercase;">One Minute Mic</div>
+    <div style="font-family:'Space Mono',monospace; font-size:13px; color:#8b7fb0; letter-spacing:2px; text-transform:uppercase;">7 boards &middot; 1440 &times; 900 &middot; keep talking or get buzzed</div>
+  </div>
+
+  <!-- 1. LOBBY -->
+  <div style="display:flex; flex-direction:column; gap:14px;">
+    <div style="font-family:'Space Mono',monospace; font-size:13px; color:#ff2e88; letter-spacing:3px; text-transform:uppercase;">01 &nbsp;/&nbsp; starting up</div>
+    <div style="width:1440px; height:900px; background:#140d24; position:relative; overflow:hidden; display:grid; grid-template-rows:auto 1fr auto; padding:56px 64px; box-sizing:border-box; box-shadow:0 40px 90px rgba(0,0,0,.5);">
+      <div style="position:absolute; top:-160px; right:-120px; width:620px; height:620px; border-radius:50%; background:#2b1b4d; filter:blur(10px);"></div>
+      <div style="position:relative; display:flex; align-items:flex-start; justify-content:space-between;">
+        <div>
+          <div style="font-family:Anton; font-size:88px; line-height:.86; color:#fff; text-transform:uppercase; letter-spacing:-2px;">One Minute<br><span style="color:#d9ff3d;">Mic</span></div>
+          <div style="font-family:'Space Mono',monospace; font-size:15px; color:#a99ccc; margin-top:14px; letter-spacing:1px;">Talk for 60 seconds. Stop talking and you're out.</div>
+        </div>
+        <div style="display:flex; align-items:center; gap:18px; background:#ff2e88; padding:18px 26px; transform:rotate(2deg);">
+          <div style="font-family:Anton; font-size:72px; color:#140d24; line-height:.8;">12</div>
+          <div style="font-family:'Space Mono',monospace; font-size:12px; color:#140d24; line-height:1.5; letter-spacing:1px; text-transform:uppercase; font-weight:700;">day<br>streak<br>&#9679;&#9679;&#9679;&#9679;&#9679;</div>
+        </div>
+      </div>
+
+      <div style="position:relative; display:grid; grid-template-columns:1fr 400px; gap:48px; align-content:center; padding:8px 0; min-height:0;">
+        <div style="display:flex; flex-direction:column; gap:14px;">
+          <div style="font-family:'Space Mono',monospace; font-size:13px; color:#8b7fb0; letter-spacing:3px; text-transform:uppercase;">Pick your topic decks</div>
+          <div style="display:flex; flex-wrap:wrap; gap:14px;">
+            <div style="padding:12px 18px; background:#d9ff3d; color:#140d24; font-weight:700; font-size:18px; display:flex; align-items:center; gap:12px;">Office Life <span style="font-family:'Space Mono',monospace; font-size:13px; opacity:.6;">48</span></div>
+            <div style="padding:12px 18px; background:#d9ff3d; color:#140d24; font-weight:700; font-size:18px; display:flex; align-items:center; gap:12px;">Embarrassing <span style="font-family:'Space Mono',monospace; font-size:13px; opacity:.6;">31</span></div>
+            <div style="padding:12px 18px; background:#2b1b4d; color:#a99ccc; font-weight:700; font-size:18px; display:flex; align-items:center; gap:12px;">Hot Takes <span style="font-family:'Space Mono',monospace; font-size:13px; opacity:.5;">27</span></div>
+            <div style="padding:12px 18px; background:#2ee6ff; color:#140d24; font-weight:700; font-size:18px; display:flex; align-items:center; gap:12px;">Deep End <span style="font-family:'Space Mono',monospace; font-size:13px; opacity:.6;">19</span></div>
+            <div style="padding:12px 18px; background:#2b1b4d; color:#a99ccc; font-weight:700; font-size:18px; display:flex; align-items:center; gap:12px;">Nonsense <span style="font-family:'Space Mono',monospace; font-size:13px; opacity:.5;">64</span></div>
+            <div style="padding:12px 18px; background:#2b1b4d; color:#a99ccc; font-weight:700; font-size:18px; display:flex; align-items:center; gap:12px;">Childhood <span style="font-family:'Space Mono',monospace; font-size:13px; opacity:.5;">22</span></div>
+          </div>
+          <div style="font-family:'Space Mono',monospace; font-size:13px; color:#8b7fb0; letter-spacing:3px; text-transform:uppercase; margin-top:12px;">How long can you pause?</div>
+          <div style="display:flex; gap:12px; align-items:stretch;">
+            <div style="padding:14px 20px; background:#2b1b4d; color:#a99ccc; font-family:Anton; font-size:26px;">0.8s<div style="font-family:'Space Mono',monospace; font-size:11px; letter-spacing:1px;">BRUTAL</div></div>
+            <div style="padding:14px 20px; background:#ff2e88; color:#140d24; font-family:Anton; font-size:26px; outline:4px solid #d9ff3d; outline-offset:3px;">1.5s<div style="font-family:'Space Mono',monospace; font-size:11px; letter-spacing:1px;">HOUSE RULES</div></div>
+            <div style="padding:14px 20px; background:#2b1b4d; color:#a99ccc; font-family:Anton; font-size:26px;">2.5s<div style="font-family:'Space Mono',monospace; font-size:11px; letter-spacing:1px;">GENEROUS</div></div>
+            <div style="padding:14px 20px; background:#2b1b4d; color:#a99ccc; font-family:Anton; font-size:26px;">4.0s<div style="font-family:'Space Mono',monospace; font-size:11px; letter-spacing:1px;">BARELY A GAME</div></div>
+          </div>
+        </div>
+
+        <div style="background:#0c0818; border:2px solid #2b1b4d; padding:26px; display:flex; flex-direction:column; gap:16px;">
+          <div style="font-family:'Space Mono',monospace; font-size:12px; color:#8b7fb0; letter-spacing:3px; text-transform:uppercase;">Mic check</div>
+          <div style="display:flex; align-items:flex-end; gap:5px; height:84px;">
+            <div style="width:12px; height:26%; background:#d9ff3d;"></div>
+            <div style="width:12px; height:54%; background:#d9ff3d;"></div>
+            <div style="width:12px; height:88%; background:#d9ff3d;"></div>
+            <div style="width:12px; height:62%; background:#d9ff3d;"></div>
+            <div style="width:12px; height:100%; background:#2ee6ff;"></div>
+            <div style="width:12px; height:71%; background:#d9ff3d;"></div>
+            <div style="width:12px; height:40%; background:#d9ff3d;"></div>
+            <div style="width:12px; height:58%; background:#d9ff3d;"></div>
+            <div style="width:12px; height:22%; background:#4a3a72;"></div>
+            <div style="width:12px; height:34%; background:#4a3a72;"></div>
+            <div style="width:12px; height:14%; background:#4a3a72;"></div>
+          </div>
+          <div style="font-family:'Space Grotesk'; font-size:16px; color:#fff; line-height:1.4;">Say anything. If the bars move, it can hear you.</div>
+          <div style="height:1px; background:#2b1b4d;"></div>
+          <div style="font-family:'Space Mono',monospace; font-size:12px; color:#8b7fb0; line-height:1.8; letter-spacing:.5px;">BEST RUN&nbsp;&nbsp;&nbsp;&nbsp;<span style="color:#fff;">9 CLEAN MINUTES</span><br>BANKED&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style="color:#fff;">41 MINUTES</span><br>WORST EXIT&nbsp;&nbsp;<span style="color:#ff2e88;">2.4 SECONDS</span></div>
+        </div>
+      </div>
+
+      <div style="position:relative; display:flex; align-items:center; justify-content:space-between;">
+        <div style="display:flex; align-items:center; gap:20px;">
+          <div style="background:#d9ff3d; color:#140d24; font-family:Anton; font-size:32px; padding:18px 56px 20px; letter-spacing:1px;">HIT SPACE TO GO</div>
+          <div style="font-family:'Space Mono',monospace; font-size:13px; color:#8b7fb0; letter-spacing:1px;">no account, no saving,<br>nobody is listening but you</div>
+        </div>
+        <div style="display:flex; gap:10px; align-items:center; font-family:'Space Mono',monospace; font-size:13px; color:#a99ccc;">
+          <span style="padding:10px 20px; border:2px solid #4a3a72; border-bottom-width:5px; color:#fff; letter-spacing:2px;">SPACE</span> START
+          <span style="padding:10px 16px; border:2px solid #4a3a72; border-bottom-width:5px; color:#fff; margin-left:16px;">B</span> BUZZ ME OUT
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. TOPIC REVEAL -->
+  <div style="display:flex; flex-direction:column; gap:14px;">
+    <div style="font-family:'Space Mono',monospace; font-size:13px; color:#ff2e88; letter-spacing:3px; text-transform:uppercase;">02 &nbsp;/&nbsp; the topic, revealed</div>
+    <div style="width:1440px; height:900px; background:#140d24; position:relative; overflow:hidden; display:grid; grid-template-rows:auto 1fr auto; padding:56px 64px; box-sizing:border-box; box-shadow:0 40px 90px rgba(0,0,0,.5);">
+      <div style="position:absolute; inset:0; background:radial-gradient(circle at 50% 45%, #33205c 0%, #140d24 62%);"></div>
+      <div style="position:relative; display:flex; justify-content:space-between; font-family:'Space Mono',monospace; font-size:13px; color:#8b7fb0; letter-spacing:3px; text-transform:uppercase;">
+        <div>Office Life &middot; card 12 of 48</div>
+        <div>pause allowed &nbsp;<span style="color:#ff2e88;">1.5s</span></div>
+      </div>
+      <div style="position:relative; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:34px; text-align:center;">
+        <div style="font-family:'Space Mono',monospace; font-size:15px; color:#d9ff3d; letter-spacing:6px; text-transform:uppercase;">Your topic is</div>
+        <div style="font-family:Anton; font-size:150px; line-height:.92; color:#fff; text-transform:uppercase; letter-spacing:-3px; max-width:1180px; text-wrap:balance;">A meeting that should have been an email</div>
+        <div style="display:flex; gap:16px; margin-top:18px;">
+          <div style="padding:16px 30px; background:#2ee6ff; color:#140d24; font-family:Anton; font-size:26px;">GIVE ME THIS ONE</div>
+          <div style="padding:16px 30px; border:2px solid #4a3a72; color:#a99ccc; font-family:Anton; font-size:26px;">NEW TOPIC &nbsp;&#8635;</div>
+        </div>
+        <div style="font-family:'Space Mono',monospace; font-size:13px; color:#8b7fb0; letter-spacing:1px;">2 skips left today</div>
+      </div>
+      <div style="position:relative; display:flex; align-items:center; justify-content:space-between;">
+        <div style="font-family:'Space Mono',monospace; font-size:13px; color:#8b7fb0; letter-spacing:1px;">STREAK <span style="color:#ff2e88; font-weight:700;">12 DAYS</span></div>
+        <div style="display:flex; gap:10px; align-items:center; font-family:'Space Mono',monospace; font-size:13px; color:#a99ccc;">
+          <span style="padding:10px 20px; border:2px solid #4a3a72; border-bottom-width:5px; color:#fff; letter-spacing:2px;">SPACE</span> LOCK IT IN
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. COUNTDOWN -->
+  <div style="display:flex; flex-direction:column; gap:14px;">
+    <div style="font-family:'Space Mono',monospace; font-size:13px; color:#ff2e88; letter-spacing:3px; text-transform:uppercase;">03 &nbsp;/&nbsp; three, two, one</div>
+    <div style="width:1440px; height:900px; background:#2ee6ff; position:relative; overflow:hidden; display:grid; grid-template-rows:auto 1fr auto; padding:56px 64px; box-sizing:border-box; box-shadow:0 40px 90px rgba(0,0,0,.5);">
+      <div style="position:relative; font-family:'Space Mono',monospace; font-size:14px; color:#0b3a44; letter-spacing:4px; text-transform:uppercase; font-weight:700;">A meeting that should have been an email</div>
+      <div style="position:relative; display:flex; align-items:center; justify-content:center; gap:64px;">
+        <div style="font-family:Anton; font-size:440px; line-height:.8; color:#140d24; letter-spacing:-14px;">2</div>
+        <div style="display:flex; flex-direction:column; gap:10px;">
+          <div style="font-family:Anton; font-size:96px; line-height:.85; color:#0b3a44; opacity:.28;">3</div>
+          <div style="font-family:Anton; font-size:96px; line-height:.85; color:#ff2e88;">1</div>
+          <div style="font-family:Anton; font-size:60px; line-height:.9; color:#140d24;">TALK!</div>
+        </div>
+      </div>
+      <div style="position:relative; display:flex; justify-content:space-between; align-items:center; font-family:'Space Mono',monospace; font-size:14px; color:#0b3a44; letter-spacing:2px; font-weight:700;">
+        <div>DEEP BREATH. DON'T PLAN. JUST START.</div>
+        <div>MIC LIVE &nbsp;&#9679;</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4. LIVE MINUTE -->
+  <div style="display:flex; flex-direction:column; gap:14px;">
+    <div style="font-family:'Space Mono',monospace; font-size:13px; color:#ff2e88; letter-spacing:3px; text-transform:uppercase;">04 &nbsp;/&nbsp; the live minute &mdash; mid panic, half drained</div>
+    <div style="width:1440px; height:900px; background:#140d24; position:relative; overflow:hidden; display:grid; grid-template-rows:auto 1fr auto auto; gap:16px; padding:32px 56px; box-sizing:border-box; box-shadow:0 40px 90px rgba(0,0,0,.5);">
+      <div style="position:absolute; inset:0; box-shadow:inset 0 0 220px 70px rgba(255,46,136,.42);"></div>
+      <div style="position:relative; display:flex; align-items:center; justify-content:space-between;">
+        <div style="display:flex; align-items:center; gap:18px;">
+          <div style="background:#2b1b4d; color:#fff; font-weight:700; font-size:22px; padding:12px 20px;">A meeting that should have been an email</div>
+          <div style="font-family:'Space Mono',monospace; font-size:12px; color:#8b7fb0; letter-spacing:2px;">ROUND 1 &middot; STREAK 12</div>
+        </div>
+        <div style="font-family:'Space Mono',monospace; font-size:14px; color:#ff2e88; letter-spacing:3px; font-weight:700; animation:pulse 1s infinite;">&#9679; LISTENING</div>
+      </div>
+
+      <div style="position:relative; display:grid; grid-template-columns:1fr 300px; gap:48px; align-items:center; min-height:0;">
+        <div style="display:flex; flex-direction:column; align-items:flex-start;">
+          <div style="font-family:'Space Mono',monospace; font-size:16px; color:#8b7fb0; letter-spacing:8px; text-transform:uppercase; margin-bottom:10px;">Seconds left</div>
+          <div style="font-family:Anton; font-size:230px; line-height:1; color:#fff; letter-spacing:-12px;">23</div>
+          <div style="display:flex; align-items:center; gap:14px; width:100%; margin-top:18px;">
+            <div style="flex:1; height:14px; background:#2b1b4d;"><div style="width:62%; height:100%; background:#d9ff3d;"></div></div>
+            <div style="font-family:'Space Mono',monospace; font-size:13px; color:#8b7fb0;">37 / 60 SURVIVED</div>
+          </div>
+        </div>
+
+        <div style="display:flex; flex-direction:column; gap:14px; align-items:center;">
+          <div style="font-family:'Space Mono',monospace; font-size:12px; color:#d9ff3d; letter-spacing:4px; text-transform:uppercase;">It hears you</div>
+          <div style="display:flex; align-items:flex-end; gap:6px; height:210px; padding:14px; background:#0c0818; border:2px solid #2b1b4d;">
+            <div style="width:14px; height:18%; background:#4a3a72;"></div>
+            <div style="width:14px; height:34%; background:#d9ff3d;"></div>
+            <div style="width:14px; height:52%; background:#d9ff3d;"></div>
+            <div style="width:14px; height:29%; background:#d9ff3d;"></div>
+            <div style="width:14px; height:11%; background:#4a3a72;"></div>
+            <div style="width:14px; height:24%; background:#d9ff3d;"></div>
+            <div style="width:14px; height:41%; background:#d9ff3d;"></div>
+            <div style="width:14px; height:16%; background:#4a3a72;"></div>
+            <div style="width:14px; height:9%; background:#4a3a72;"></div>
+            <div style="width:14px; height:22%; background:#d9ff3d;"></div>
+            <div style="width:14px; height:13%; background:#4a3a72;"></div>
+            <div style="width:14px; height:6%; background:#3a2c5c;"></div>
+          </div>
+          <div style="font-family:'Space Mono',monospace; font-size:12px; color:#8b7fb0; letter-spacing:1px; text-align:center;">volume doesn't matter.<br>only whether you're talking.</div>
+        </div>
+      </div>
+
+      <div style="position:relative; background:#0c0818; border:3px solid #ff2e88; padding:18px 24px; display:flex; flex-direction:column; gap:10px;">
+        <div style="display:flex; align-items:baseline; justify-content:space-between;">
+          <div style="font-family:Anton; font-size:34px; color:#ff2e88; letter-spacing:1px;">SILENCE &mdash; 0.8s LEFT</div>
+          <div style="font-family:'Space Mono',monospace; font-size:14px; color:#ff2e88; letter-spacing:3px; font-weight:700; animation:pulse .6s infinite;">SAY SOMETHING. ANYTHING.</div>
+        </div>
+        <div style="height:36px; background:#2b1b4d; position:relative; display:flex;">
+          <div style="width:53%; height:100%; background:#ff2e88;"></div>
+          <div style="position:absolute; inset:0; display:flex;">
+            <div style="flex:1; border-right:2px solid rgba(12,8,24,.55);"></div>
+            <div style="flex:1; border-right:2px solid rgba(12,8,24,.55);"></div>
+            <div style="flex:1;"></div>
+          </div>
+        </div>
+        <div style="display:flex; justify-content:space-between; font-family:'Space Mono',monospace; font-size:12px; color:#8b7fb0; letter-spacing:2px;">
+          <div>0.0s</div><div>0.5s</div><div>1.0s</div><div style="color:#ff2e88;">1.5s &mdash; BUZZ</div>
+        </div>
+      </div>
+
+      <div style="position:relative; display:flex; align-items:center; justify-content:space-between;">
+        <div style="font-family:'Space Mono',monospace; font-size:13px; color:#8b7fb0; letter-spacing:1px;">PAUSES USED THIS ROUND <span style="color:#fff;">4</span> &nbsp;&middot;&nbsp; LONGEST <span style="color:#fff;">1.2s</span></div>
+        <div style="display:flex; gap:10px; align-items:center; font-family:'Space Mono',monospace; font-size:13px; color:#a99ccc;">
+          <span style="padding:10px 16px; border:2px solid #4a3a72; border-bottom-width:5px; color:#fff;">B</span> BUZZ ME OUT
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 5. BUZZED OUT -->
+  <div style="display:flex; flex-direction:column; gap:14px;">
+    <div style="font-family:'Space Mono',monospace; font-size:13px; color:#ff2e88; letter-spacing:3px; text-transform:uppercase;">05 &nbsp;/&nbsp; buzzed out</div>
+    <div style="width:1440px; height:900px; background:#ff2e88; position:relative; overflow:hidden; display:grid; grid-template-rows:auto 1fr auto; padding:56px 64px; box-sizing:border-box; box-shadow:0 40px 90px rgba(0,0,0,.5);">
+      <div style="position:relative; display:flex; justify-content:space-between; font-family:'Space Mono',monospace; font-size:14px; color:#5c0630; letter-spacing:4px; text-transform:uppercase; font-weight:700;">
+        <div>A meeting that should have been an email</div>
+        <div>silence detected at 00:05</div>
+      </div>
+      <div style="position:relative; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:26px; text-align:center;">
+        <div style="font-family:Anton; font-size:230px; line-height:.82; color:#140d24; letter-spacing:-8px; transform:rotate(-2deg);">BZZZZT!</div>
+        <div style="font-family:Anton; font-size:62px; color:#fff; letter-spacing:1px;">FIVE SECONDS. FIVE.</div>
+        <div style="font-family:'Space Grotesk'; font-size:26px; color:#5c0630; font-weight:500; max-width:760px;">You went quiet for 1.6 seconds, which is 0.1 more than you agreed to. Rules are rules.</div>
+        <div style="display:flex; gap:44px; margin-top:16px; font-family:'Space Mono',monospace; font-size:13px; color:#5c0630; letter-spacing:2px; font-weight:700;">
+          <div>LASTED<br><span style="font-family:Anton; font-size:56px; color:#140d24; letter-spacing:0;">00:05</span></div>
+          <div>STREAK<br><span style="font-family:Anton; font-size:56px; color:#140d24; letter-spacing:0;">12 &#8594; 12</span></div>
+          <div>TODAY'S ATTEMPTS<br><span style="font-family:Anton; font-size:56px; color:#140d24; letter-spacing:0;">7</span></div>
+        </div>
+        <div style="display:flex; gap:16px; margin-top:22px;">
+          <div style="padding:20px 44px; background:#140d24; color:#d9ff3d; font-family:Anton; font-size:32px;">SAME TOPIC, AGAIN</div>
+          <div style="padding:20px 44px; background:#d9ff3d; color:#140d24; font-family:Anton; font-size:32px;">NEW TOPIC</div>
+        </div>
+      </div>
+      <div style="position:relative; display:flex; align-items:center; justify-content:space-between;">
+        <div style="font-family:'Space Grotesk'; font-size:20px; color:#5c0630; font-weight:700;">Streak survives until midnight. You have time.</div>
+        <div style="display:flex; gap:10px; align-items:center; font-family:'Space Mono',monospace; font-size:13px; color:#5c0630; font-weight:700;">
+          <span style="padding:10px 20px; background:#140d24; color:#fff; letter-spacing:2px;">SPACE</span> GO AGAIN
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 6. SURVIVED -->
+  <div style="display:flex; flex-direction:column; gap:14px;">
+    <div style="font-family:'Space Mono',monospace; font-size:13px; color:#ff2e88; letter-spacing:3px; text-transform:uppercase;">06 &nbsp;/&nbsp; you made it</div>
+    <div style="width:1440px; height:900px; background:#d9ff3d; position:relative; overflow:hidden; display:grid; grid-template-rows:auto 1fr auto; padding:56px 64px; box-sizing:border-box; box-shadow:0 40px 90px rgba(0,0,0,.5);">
+      <div style="position:relative; display:flex; justify-content:space-between; font-family:'Space Mono',monospace; font-size:14px; color:#3d4a08; letter-spacing:4px; text-transform:uppercase; font-weight:700;">
+        <div>One Minute Mic &middot; 19 aug 2026</div>
+        <div>zero buzzes. one clean minute.</div>
+      </div>
+      <div style="position:relative; display:grid; grid-template-columns:1fr 460px; gap:56px; align-items:center;">
+        <div style="display:flex; flex-direction:column; gap:22px;">
+          <div style="font-family:Anton; font-size:220px; line-height:.8; color:#140d24; letter-spacing:-8px; text-transform:uppercase;">YOU<br>SURVIVED</div>
+          <div style="font-family:'Space Grotesk'; font-size:28px; color:#3d4a08; font-weight:500; max-width:640px;">Sixty seconds on <strong style="color:#140d24;">&ldquo;A meeting that should have been an email&rdquo;</strong> and you never once stopped talking.</div>
+          <div style="display:flex; gap:14px; margin-top:10px;">
+            <div style="padding:20px 40px; background:#140d24; color:#d9ff3d; font-family:Anton; font-size:30px;">SCREENSHOT THIS</div>
+            <div style="padding:20px 40px; background:#ff2e88; color:#140d24; font-family:Anton; font-size:30px;">ONE MORE MINUTE</div>
+          </div>
+        </div>
+        <div style="background:#140d24; padding:40px; display:flex; flex-direction:column; gap:28px; transform:rotate(1.5deg);">
+          <div style="font-family:'Space Mono',monospace; font-size:12px; color:#8b7fb0; letter-spacing:4px; text-transform:uppercase;">Banked</div>
+          <div style="display:flex; align-items:baseline; gap:14px;">
+            <div style="font-family:Anton; font-size:120px; line-height:.8; color:#d9ff3d;">13</div>
+            <div style="font-family:Anton; font-size:34px; color:#fff;">DAY STREAK</div>
+          </div>
+          <div style="display:flex; gap:7px;">
+            <div style="width:26px; height:26px; background:#d9ff3d;"></div>
+            <div style="width:26px; height:26px; background:#d9ff3d;"></div>
+            <div style="width:26px; height:26px; background:#d9ff3d;"></div>
+            <div style="width:26px; height:26px; background:#d9ff3d;"></div>
+            <div style="width:26px; height:26px; background:#d9ff3d;"></div>
+            <div style="width:26px; height:26px; background:#d9ff3d;"></div>
+            <div style="width:26px; height:26px; background:#2ee6ff;"></div>
+          </div>
+          <div style="height:1px; background:#2b1b4d;"></div>
+          <div style="font-family:'Space Mono',monospace; font-size:14px; color:#a99ccc; line-height:2.1; letter-spacing:1px;">CLEAN MINUTES&nbsp;&nbsp;<span style="color:#fff; font-weight:700;">42</span><br>LONGEST PAUSE&nbsp;&nbsp;<span style="color:#fff; font-weight:700;">1.3s</span><br>CLOSE CALLS&nbsp;&nbsp;<span style="color:#ff2e88; font-weight:700;">3</span><br>ATTEMPTS TODAY&nbsp;&nbsp;<span style="color:#fff; font-weight:700;">8</span></div>
+        </div>
+      </div>
+      <div style="position:relative; display:flex; align-items:center; justify-content:space-between;">
+        <div style="font-family:'Space Grotesk'; font-size:20px; color:#3d4a08; font-weight:700;">Tomorrow's deck unlocked: <span style="color:#140d24;">Hot Takes</span></div>
+        <div style="display:flex; gap:10px; align-items:center; font-family:'Space Mono',monospace; font-size:13px; color:#3d4a08; font-weight:700;">
+          <span style="padding:10px 20px; background:#140d24; color:#fff; letter-spacing:2px;">SPACE</span> GO AGAIN
+          <span style="padding:10px 16px; background:#140d24; color:#fff; margin-left:16px;">B</span> BUZZ ME OUT
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 7. NARROW LIVE MINUTE -->
+  <div style="display:flex; flex-direction:column; gap:14px;">
+    <div style="font-family:'Space Mono',monospace; font-size:13px; color:#ff2e88; letter-spacing:3px; text-transform:uppercase;">07 &nbsp;/&nbsp; the live minute, narrow window (620 &times; 900)</div>
+    <div style="width:620px; height:900px; background:#140d24; position:relative; overflow:hidden; display:grid; grid-template-rows:auto 1fr auto auto; gap:20px; padding:32px; box-sizing:border-box; box-shadow:0 40px 90px rgba(0,0,0,.5);">
+      <div style="position:absolute; inset:0; box-shadow:inset 0 0 160px 50px rgba(255,46,136,.42);"></div>
+      <div style="position:relative; display:flex; flex-direction:column; gap:10px;">
+        <div style="display:flex; justify-content:space-between; font-family:'Space Mono',monospace; font-size:11px; color:#8b7fb0; letter-spacing:2px;">
+          <div>ROUND 1 &middot; STREAK 12</div>
+          <div style="color:#ff2e88; font-weight:700; animation:pulse 1s infinite;">&#9679; LISTENING</div>
+        </div>
+        <div style="background:#2b1b4d; color:#fff; font-weight:700; font-size:17px; padding:10px 14px;">A meeting that should have been an email</div>
+      </div>
+
+      <div style="position:relative; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:12px;">
+        <div style="font-family:'Space Mono',monospace; font-size:12px; color:#8b7fb0; letter-spacing:6px; text-transform:uppercase; margin-bottom:6px;">Seconds left</div>
+        <div style="font-family:Anton; font-size:180px; line-height:1; color:#fff; letter-spacing:-9px; margin-bottom:10px;">23</div>
+        <div style="display:flex; align-items:flex-end; gap:5px; height:112px; width:100%; padding:12px; box-sizing:border-box; background:#0c0818; border:2px solid #2b1b4d;">
+          <div style="flex:1; height:22%; background:#4a3a72;"></div>
+          <div style="flex:1; height:46%; background:#d9ff3d;"></div>
+          <div style="flex:1; height:68%; background:#d9ff3d;"></div>
+          <div style="flex:1; height:35%; background:#d9ff3d;"></div>
+          <div style="flex:1; height:14%; background:#4a3a72;"></div>
+          <div style="flex:1; height:30%; background:#d9ff3d;"></div>
+          <div style="flex:1; height:52%; background:#d9ff3d;"></div>
+          <div style="flex:1; height:19%; background:#4a3a72;"></div>
+          <div style="flex:1; height:10%; background:#4a3a72;"></div>
+          <div style="flex:1; height:26%; background:#d9ff3d;"></div>
+          <div style="flex:1; height:8%; background:#3a2c5c;"></div>
+        </div>
+        <div style="font-family:'Space Mono',monospace; font-size:11px; color:#8b7fb0; letter-spacing:1px;">37 / 60 SURVIVED</div>
+      </div>
+
+      <div style="position:relative; background:#0c0818; border:3px solid #ff2e88; padding:16px; display:flex; flex-direction:column; gap:10px;">
+        <div style="font-family:Anton; font-size:28px; color:#ff2e88;">SILENCE &mdash; 0.8s LEFT</div>
+        <div style="height:32px; background:#2b1b4d; display:flex;">
+          <div style="width:53%; height:100%; background:#ff2e88;"></div>
+        </div>
+        <div style="font-family:'Space Mono',monospace; font-size:11px; color:#ff2e88; letter-spacing:2px; font-weight:700; animation:pulse .6s infinite;">SAY SOMETHING. ANYTHING.</div>
+      </div>
+
+      <div style="position:relative; display:flex; align-items:center; justify-content:space-between; font-family:'Space Mono',monospace; font-size:11px; color:#a99ccc;">
+        <div style="color:#8b7fb0;">PAUSES <span style="color:#fff;">4</span></div>
+        <div style="display:flex; gap:8px; align-items:center;">
+          <span style="padding:8px 14px; border:2px solid #4a3a72; border-bottom-width:4px; color:#fff;">B</span> BUZZ ME OUT
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+</x-dc>
+</body>
+</html>
