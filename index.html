@@ -2,716 +2,1287 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>One Minute Mic</title>
-<meta name="description" content="Get a random topic. Talk for 60 seconds. Pause and you are out. Runs entirely in your browser.">
+<meta name="description" content="You get a random topic and 60 seconds to talk about it. Go quiet too long and you're buzzed out. Runs entirely in your browser, nothing is recorded or uploaded.">
+<meta name="theme-color" content="#140d24">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%23d9ff3d'/%3E%3Ctext x='32' y='46' font-family='Arial Black,Arial' font-size='40' font-weight='900' text-anchor='middle' fill='%23140d24'%3E60%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Space+Mono:wght@400;700&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
-  /* ---------------------------------------------------------------
-     Palette. Change these six values and the whole app is yours.
-  --------------------------------------------------------------- */
-  :root{
-    --wine-900:#4A0F27;
-    --wine-800:#5E1733;
-    --wine-700:#75203F;
-    --wine-500:#8E3355;
-    --wine-300:#A9536F;
-    --cream:#FBF6EE;
-    --acid:#DCDE72;
+/* =====================================================================
+   One Minute Mic : design tokens from the Claude Design handoff.
+   Hard rectangles only. No border radius anywhere. That is deliberate.
+   ===================================================================== */
+:root{
+  --ink:#0c0818;
+  --shell:#140d24;
+  --raised:#2b1b4d;
+  --line:#4a3a72;
+  --line-dim:#3a2c5c;
+  --lime:#d9ff3d;
+  --magenta:#ff2e88;
+  --cyan:#2ee6ff;
+  --white:#ffffff;
+  --muted:#a99ccc;
+  --dim:#8b7fb0;
+  --on-lime:#3d4a08;
+  --on-magenta:#5c0630;
+  --on-cyan:#0b3a44;
 
-    --bg:var(--cream);
-    --ink:var(--wine-900);
-    --muted:var(--wine-300);
-    --line:rgba(74,15,39,.14);
-    --radius:18px;
-    --font:"Helvetica Neue",Helvetica,Arial,system-ui,sans-serif;
-  }
+  --display:'Anton', 'Arial Narrow', Impact, sans-serif;
+  --ui:'Space Grotesk', system-ui, sans-serif;
+  --mono:'Space Mono', ui-monospace, Menlo, monospace;
+}
 
-  *{box-sizing:border-box;margin:0;padding:0}
-  html,body{height:100%}
-  body{
-    background:var(--bg);
-    color:var(--ink);
-    font-family:var(--font);
-    -webkit-font-smoothing:antialiased;
-    display:flex;
-    flex-direction:column;
-    min-height:100dvh;
-    padding:env(safe-area-inset-top) 16px env(safe-area-inset-bottom);
-  }
-  button{font:inherit;color:inherit;cursor:pointer;border:none;background:none}
-  main{
-    flex:1;
-    width:100%;
-    max-width:640px;
-    margin:0 auto;
-    display:flex;
-    flex-direction:column;
-    justify-content:center;
-    gap:28px;
-    padding:24px 0;
-  }
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  background:var(--shell);
+  color:var(--white);
+  font-family:var(--ui);
+  -webkit-font-smoothing:antialiased;
+  overflow:hidden;
+}
+button{font:inherit;color:inherit;cursor:pointer;border:none;background:none}
+b,strong{font-weight:700}
 
-  /* --- header --------------------------------------------------- */
-  header{
-    width:100%;max-width:640px;margin:0 auto;
-    display:flex;align-items:center;justify-content:space-between;
-    padding:18px 0 0;
-  }
-  .wordmark{
-    font-size:14px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;
-    display:flex;align-items:center;gap:8px;
-  }
-  .dot{width:9px;height:9px;border-radius:50%;background:var(--acid);display:inline-block}
-  .streak{
-    font-size:13px;font-weight:600;color:var(--wine-500);
-    background:rgba(142,51,85,.09);padding:6px 12px;border-radius:999px;
-  }
+/* Anton's ink box overflows a tight line box: big digits get
+   line-height 1 and explicit clearance so glyphs never collide. */
+.display{font-family:var(--display);font-weight:400;text-transform:uppercase;line-height:1}
 
-  /* --- shared --------------------------------------------------- */
-  .eyebrow{
-    font-size:12px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;
-    color:var(--wine-300);
-  }
-  .btn{
-    display:block;width:100%;
-    background:var(--wine-800);color:var(--cream);
-    padding:20px 24px;border-radius:var(--radius);
-    font-size:19px;font-weight:700;letter-spacing:-.01em;
-    transition:transform .12s ease,background .12s ease;
-  }
-  .btn:hover{background:var(--wine-700)}
-  .btn:active{transform:scale(.985)}
-  .btn.ghost{
-    background:transparent;color:var(--wine-700);
-    border:1.5px solid var(--line);font-size:16px;padding:15px 20px;
-  }
-  .btn.ghost:hover{background:rgba(142,51,85,.06)}
-  .btn.acid{background:var(--acid);color:var(--wine-900)}
-  .btn.acid:hover{background:#e6e88a}
-  .hint{font-size:13px;color:var(--muted);text-align:center;line-height:1.5}
-  .screen{display:none;flex-direction:column;gap:28px}
-  .screen.on{display:flex}
+.mono{font-family:var(--mono);text-transform:uppercase}
 
-  /* --- home ----------------------------------------------------- */
-  h1{
-    font-size:clamp(38px,10vw,62px);line-height:.98;letter-spacing:-.035em;font-weight:800;
-  }
-  h1 em{font-style:normal;color:var(--wine-500)}
-  .lede{font-size:17px;line-height:1.55;color:var(--wine-700);max-width:34ch}
-  .picker{display:flex;flex-direction:column;gap:12px}
-  .row{display:flex;gap:8px;flex-wrap:wrap}
-  .chip{
-    padding:11px 16px;border-radius:999px;border:1.5px solid var(--line);
-    font-size:14px;font-weight:600;color:var(--wine-700);
-    transition:all .12s ease;
-  }
-  .chip[aria-pressed="true"]{
-    background:var(--wine-900);color:var(--cream);border-color:var(--wine-900);
-  }
-  .chip:hover:not([aria-pressed="true"]){border-color:var(--wine-300)}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+@keyframes shake{
+  0%,100%{transform:rotate(-2deg) translateX(0)}
+  20%{transform:rotate(-2deg) translateX(-3px)}
+  40%{transform:rotate(-2deg) translateX(3px)}
+  60%{transform:rotate(-2deg) translateX(-3px)}
+  80%{transform:rotate(-2deg) translateX(3px)}
+}
+@keyframes countpop{from{transform:scale(1.15)}to{transform:scale(1)}}
 
-  /* --- topic ---------------------------------------------------- */
-  .topic-card{
-    background:#fff;border:1.5px solid var(--line);border-radius:26px;
-    padding:38px 30px;text-align:center;
-    box-shadow:0 1px 0 rgba(74,15,39,.05),0 18px 40px -30px rgba(74,15,39,.5);
-  }
-  .topic{
-    font-size:clamp(26px,6.4vw,40px);line-height:1.15;letter-spacing:-.02em;font-weight:800;
-    text-wrap:balance;
-  }
-  .wordlist{display:flex;flex-wrap:wrap;gap:10px;justify-content:center}
-  .word{
-    font-size:clamp(20px,5vw,30px);font-weight:800;letter-spacing:-.02em;
-    background:var(--acid);color:var(--wine-900);
-    padding:6px 14px;border-radius:10px;
-  }
+/* ---------- screens: hard cuts, one visible at a time ---------- */
+.screen{display:none;width:100vw;height:100dvh;position:relative;overflow:hidden}
+.screen.on{display:grid}
 
-  /* --- live ----------------------------------------------------- */
-  .clock{
-    font-size:clamp(74px,22vw,132px);line-height:.9;font-weight:800;letter-spacing:-.05em;
-    text-align:center;font-variant-numeric:tabular-nums;
-  }
-  .clock.warn{color:var(--wine-500)}
-  .bar{height:8px;background:rgba(74,15,39,.1);border-radius:999px;overflow:hidden}
-  .bar > i{display:block;height:100%;background:var(--wine-800);width:100%;border-radius:999px}
-  .meter{
-    height:56px;border-radius:14px;border:1.5px solid var(--line);background:#fff;
-    display:flex;align-items:flex-end;gap:3px;padding:8px;overflow:hidden;
-  }
-  .meter span{
-    flex:1;background:var(--wine-300);border-radius:2px;height:4%;
-    transition:height .07s linear,background .07s linear;
-  }
-  .meter.quiet span{background:var(--wine-300);opacity:.4}
-  .pause-warn{
-    text-align:center;font-size:14px;font-weight:700;letter-spacing:.04em;
-    text-transform:uppercase;color:var(--wine-500);min-height:20px;
-  }
+/* ---------- keycaps ---------- */
+.keys{display:flex;gap:26px;align-items:center}
+.key{display:flex;gap:12px;align-items:center;font-family:var(--mono);font-size:12px;letter-spacing:2px;color:var(--dim);text-transform:uppercase}
+.key kbd{
+  font-family:var(--mono);font-size:12px;letter-spacing:2px;color:var(--white);
+  padding:10px 20px;border:2px solid var(--line);border-bottom-width:5px;
+}
+.key.invert kbd{background:var(--ink);border-color:var(--ink);color:var(--white)}
+.key.invert{color:inherit}
 
-  /* --- result --------------------------------------------------- */
-  .verdict{font-size:clamp(34px,9vw,54px);line-height:1;letter-spacing:-.03em;font-weight:800}
-  .stats{display:flex;gap:10px}
-  .stat{
-    flex:1;background:#fff;border:1.5px solid var(--line);border-radius:16px;
-    padding:16px 14px;text-align:center;
-  }
-  .stat b{display:block;font-size:26px;font-weight:800;letter-spacing:-.02em}
-  .stat small{display:block;font-size:11px;font-weight:700;letter-spacing:.1em;
-    text-transform:uppercase;color:var(--muted);margin-top:4px}
+/* =====================================================================
+   01 : LOBBY
+   ===================================================================== */
+#s-lobby{
+  grid-template-rows:auto 1fr auto;
+  padding:clamp(28px,4vh,56px) clamp(24px,4.5vw,64px);
+  gap:24px;
+}
+#s-lobby::before{
+  content:"";position:absolute;top:-160px;right:-120px;width:620px;height:620px;
+  border-radius:50%;background:var(--raised);filter:blur(10px);pointer-events:none;
+}
+#s-lobby > *{position:relative}
+.lobby-head{display:flex;justify-content:space-between;align-items:flex-start;gap:24px}
+.wordmark{font-size:clamp(48px,6vw,88px);line-height:.86;letter-spacing:-2px;color:var(--white)}
+.wordmark em{font-style:normal;color:var(--lime)}
+.tagline{font-family:var(--mono);font-size:15px;color:var(--muted);margin-top:14px}
+.streak-badge{
+  background:var(--magenta);color:var(--ink);padding:18px 26px;transform:rotate(2deg);
+  display:flex;gap:18px;align-items:center;flex:none;
+}
+.streak-badge .num{font-size:72px;letter-spacing:-2px}
+.streak-badge .lbl{font-family:var(--mono);font-size:12px;line-height:1.5;font-weight:700;letter-spacing:2px;text-transform:uppercase;white-space:pre-line}
 
-  /* --- footer --------------------------------------------------- */
-  footer{
-    width:100%;max-width:640px;margin:0 auto;padding:16px 0 22px;
-    font-size:12.5px;line-height:1.6;color:var(--muted);text-align:center;
-  }
-  footer a{color:var(--wine-500)}
-  .kbd{
-    font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11px;
-    border:1px solid var(--line);border-radius:5px;padding:1px 5px;
-  }
-  @media (max-width:420px){ main{gap:22px} }
+.lobby-mid{display:grid;grid-template-columns:1fr 400px;gap:48px;align-content:center;min-height:0}
+.picker-label{font-family:var(--mono);font-size:13px;letter-spacing:3px;text-transform:uppercase;color:var(--dim);margin-bottom:14px}
+.decks{display:flex;flex-wrap:wrap;gap:14px;margin-bottom:26px}
+.deck{
+  padding:12px 18px;font-family:var(--ui);font-weight:700;font-size:18px;
+  background:var(--raised);color:var(--muted);
+}
+.deck small{font-family:var(--mono);font-size:13px;font-weight:400;opacity:.55;margin-left:8px}
+.deck.on{color:var(--ink)}
+.deck.on.lime{background:var(--lime)}
+.deck.on.cyan{background:var(--cyan)}
+.tols{display:flex;flex-wrap:wrap;gap:12px}
+.tol{padding:14px 20px;background:var(--raised);color:var(--muted);text-align:left}
+.tol .v{font-family:var(--display);font-size:26px;line-height:1;display:block}
+.tol .c{font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;display:block;margin-top:4px}
+.tol.on{background:var(--magenta);color:var(--ink);outline:4px solid var(--lime);outline-offset:3px}
+
+.mic-panel{
+  background:var(--ink);border:2px solid var(--raised);padding:26px;
+  display:flex;flex-direction:column;gap:16px;align-self:center;
+}
+.mic-panel.blocked{border-color:var(--magenta);border-width:3px}
+.mic-panel .plabel{font-family:var(--mono);font-size:12px;letter-spacing:3px;text-transform:uppercase;color:var(--dim)}
+.mic-panel .headline{text-transform:uppercase;font-family:var(--display);font-size:44px;color:var(--magenta);letter-spacing:-1px}
+.mic-bars{display:flex;gap:5px;height:84px;align-items:flex-end}
+.mic-bars i{width:12px;background:var(--line);min-height:6%}
+.mic-bars i.hot{background:var(--lime)}
+.mic-bars i.peak{background:var(--cyan)}
+.mic-panel .say{font-size:16px;color:var(--white)}
+.mic-panel hr{border:none;border-top:1px solid var(--raised)}
+.mic-stats{font-family:var(--mono);font-size:12px;line-height:1.8;letter-spacing:1px;text-transform:uppercase;color:var(--dim)}
+.mic-stats b{color:var(--white)}
+.mic-stats .bad{color:var(--magenta)}
+.retry-btn{text-transform:uppercase;background:var(--magenta);color:var(--ink);font-family:var(--display);font-size:22px;padding:12px 24px;align-self:flex-start;letter-spacing:0}
+
+.lobby-foot{display:flex;justify-content:space-between;align-items:center;gap:24px}
+.go-cta{display:flex;gap:22px;align-items:center}
+.go-btn{text-transform:uppercase;background:var(--lime);color:var(--ink);font-family:var(--display);font-size:32px;padding:18px 56px 20px;letter-spacing:0}
+.go-btn[disabled]{background:var(--raised);color:var(--dim);cursor:not-allowed}
+.go-note{font-family:var(--mono);font-size:13px;color:var(--dim);white-space:pre-line}
+
+/* =====================================================================
+   02 : TOPIC
+   ===================================================================== */
+#s-topic{
+  grid-template-rows:auto 1fr auto;
+  padding:clamp(28px,4vh,56px) clamp(24px,4.5vw,64px);
+  background:radial-gradient(circle at 50% 45%, #33205c 0%, var(--shell) 62%);
+}
+.meta-row{display:flex;justify-content:space-between;font-family:var(--mono);font-size:13px;letter-spacing:3px;text-transform:uppercase;color:var(--dim)}
+.meta-row b{color:var(--magenta);font-weight:700}
+.topic-stack{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:34px;text-align:center;min-height:0}
+.topic-eyebrow{font-family:var(--mono);font-size:15px;letter-spacing:6px;text-transform:uppercase;color:var(--lime)}
+.topic-text{
+  font-family:var(--display);font-size:clamp(56px,10vw,150px);line-height:.92;letter-spacing:-3px;
+  color:var(--white);max-width:1180px;text-wrap:balance;text-transform:uppercase;padding:10px 0;
+}
+.topic-btns{display:flex;gap:18px;align-items:center}
+.lock-btn{text-transform:uppercase;background:var(--cyan);color:var(--ink);font-family:var(--display);font-size:26px;padding:16px 30px}
+.skip-btn{text-transform:uppercase;border:2px solid var(--line);color:var(--white);font-family:var(--display);font-size:26px;padding:16px 30px}
+.skip-btn[disabled]{opacity:.35;cursor:not-allowed}
+.skips-left{font-family:var(--mono);font-size:13px;color:var(--dim);text-transform:uppercase;letter-spacing:1px}
+
+/* =====================================================================
+   03 : COUNTDOWN
+   ===================================================================== */
+#s-count{
+  grid-template-rows:auto 1fr auto;
+  padding:clamp(28px,4vh,56px) clamp(24px,4.5vw,64px);
+  background:var(--cyan);color:var(--on-cyan);
+}
+.count-topic{font-family:var(--mono);font-size:14px;font-weight:700;letter-spacing:4px;text-transform:uppercase;text-align:center}
+.count-mid{display:flex;gap:64px;align-items:center;justify-content:center;min-height:0}
+.count-big{
+  font-family:var(--display);font-size:clamp(200px,42vmin,440px);line-height:1;letter-spacing:-14px;
+  color:var(--ink);padding:10px 0;
+}
+.count-big.pop{animation:countpop 120ms ease-out}
+.count-side{display:flex;flex-direction:column;gap:10px;align-items:flex-start}
+.count-side .n{font-family:var(--display);font-size:96px;line-height:1;color:var(--on-cyan);padding:4px 0}
+.count-side .n.spent{opacity:.28}
+.count-side .n.next{color:var(--magenta);opacity:1}
+.count-side .talk{font-family:var(--display);font-size:60px;line-height:1;color:var(--ink)}
+.count-foot{display:flex;justify-content:space-between;font-family:var(--mono);font-size:14px;font-weight:700;letter-spacing:2px;text-transform:uppercase}
+
+/* =====================================================================
+   04 : LIVE MINUTE
+   ===================================================================== */
+#s-live{
+  grid-template-rows:auto 1fr auto auto;gap:16px;
+  padding:clamp(20px,3.5vh,32px) clamp(24px,4vw,56px);
+  background:var(--shell);
+}
+#vignette{
+  position:absolute;inset:0;pointer-events:none;opacity:0;
+  box-shadow:inset 0 0 220px 70px rgba(255,46,136,.42);
+}
+#s-live > *:not(#vignette){position:relative}
+.live-head{display:flex;flex-direction:row-reverse;align-items:center;gap:18px}
+.live-head-top{flex:1;display:flex;justify-content:space-between;align-items:center;gap:18px}
+.live-head-left{display:flex;gap:18px;align-items:center;min-width:0}
+.topic-pill{background:var(--raised);font-weight:700;font-size:22px;padding:12px 20px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.round-meta{font-family:var(--mono);font-size:12px;letter-spacing:2px;text-transform:uppercase;color:var(--dim);flex:none}
+.listening{text-transform:uppercase;font-family:var(--mono);font-size:14px;font-weight:700;letter-spacing:3px;color:var(--magenta);animation:pulse 1s infinite;flex:none}
+
+.live-mid{display:grid;grid-template-columns:1fr 300px;gap:48px;align-items:center;min-height:0}
+.clock-label{font-family:var(--mono);font-size:16px;letter-spacing:8px;text-transform:uppercase;color:var(--dim);margin-bottom:10px}
+.clock{
+  font-family:var(--display);font-size:clamp(120px,26vmin,230px);line-height:1;letter-spacing:-12px;
+  color:var(--white);padding:10px 0;
+}
+.survive-row{display:flex;gap:14px;align-items:center;margin-top:18px}
+.survive-track{flex:1;height:14px;background:var(--raised)}
+.survive-track i{display:block;height:100%;background:var(--lime);width:0%}
+.survive-count{font-family:var(--mono);font-size:13px;color:var(--dim);white-space:nowrap;text-transform:uppercase}
+
+.voice-col{display:flex;flex-direction:column;gap:12px}
+.voice-label{font-family:var(--mono);font-size:12px;letter-spacing:4px;text-transform:uppercase;color:var(--lime)}
+.voice-box{background:var(--ink);border:2px solid var(--raised);height:210px;padding:14px;display:flex;gap:6px;align-items:flex-end}
+.voice-box i{width:14px;background:var(--line-dim);min-height:4%}
+.voice-box i.hot{background:var(--lime)}
+.voice-box i.cold{background:var(--line)}
+.voice-caption{font-family:var(--mono);font-size:12px;color:var(--dim);text-align:center;line-height:1.6}
+
+.silence-panel{background:var(--ink);border:3px solid var(--magenta);padding:18px 24px;display:flex;flex-direction:column;gap:10px}
+.silence-top{display:flex;justify-content:space-between;align-items:center;gap:16px}
+.silence-label{font-family:var(--display);font-size:34px;color:var(--magenta);letter-spacing:0;line-height:1;padding:2px 0}
+.silence-warning{font-family:var(--mono);font-size:14px;font-weight:700;letter-spacing:1px;color:var(--magenta);animation:pulse .6s infinite;text-align:right;visibility:hidden}
+.silence-warning.show{visibility:visible}
+.drain-track{position:relative;height:36px;background:var(--raised)}
+.drain-track i{display:block;height:100%;background:var(--magenta);width:100%}
+.drain-track em{position:absolute;top:0;bottom:0;width:0;border-left:2px solid rgba(12,8,24,.55)}
+.drain-scale{display:flex;justify-content:space-between;font-family:var(--mono);font-size:12px;color:var(--dim);text-transform:uppercase}
+.drain-scale span:last-child{color:var(--magenta)}
+.live-foot{display:flex;justify-content:space-between;align-items:center;font-family:var(--mono);font-size:13px;color:var(--dim);text-transform:uppercase;letter-spacing:1px}
+.live-foot b{color:var(--white)}
+
+/* =====================================================================
+   05 · BUZZED OUT
+   ===================================================================== */
+#s-lost{
+  grid-template-rows:auto 1fr auto;
+  padding:clamp(28px,4vh,56px) clamp(24px,4.5vw,64px);
+  background:var(--magenta);color:var(--on-magenta);
+}
+.lost-meta{display:flex;justify-content:space-between;font-family:var(--mono);font-size:14px;font-weight:700;letter-spacing:4px;text-transform:uppercase;gap:16px}
+.lost-mid{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:26px;text-align:center;min-height:0}
+.bzzzzt{
+  font-family:var(--display);font-size:clamp(96px,18vmin,230px);line-height:1;letter-spacing:-8px;
+  color:var(--ink);transform:rotate(-2deg);padding:10px 0;
+}
+.bzzzzt.shaking{animation:shake 180ms linear}
+.lost-headline{text-transform:uppercase;font-family:var(--display);font-size:clamp(36px,6vmin,62px);line-height:1;color:var(--white);padding:6px 0}
+.lost-body{font-size:26px;font-weight:500;max-width:760px;line-height:1.4}
+.lost-stats{display:flex;gap:44px;justify-content:center}
+.lost-stats .stat{text-align:center}
+.lost-stats .stat small{display:block;font-family:var(--mono);font-size:13px;font-weight:700;letter-spacing:2px;text-transform:uppercase;margin-bottom:8px}
+.lost-stats .stat b{font-family:var(--display);font-size:56px;font-weight:400;color:var(--ink);line-height:1}
+.lost-btns{display:flex;gap:18px}
+.btn-dark{text-transform:uppercase;background:var(--ink);color:var(--lime);font-family:var(--display);font-size:32px;padding:20px 44px}
+.btn-lime{text-transform:uppercase;background:var(--lime);color:var(--ink);font-family:var(--display);font-size:32px;padding:20px 44px}
+.lost-foot{display:flex;justify-content:space-between;align-items:center;gap:16px;font-size:20px;font-weight:700}
+
+/* =====================================================================
+   06 : YOU MADE IT
+   ===================================================================== */
+#s-won{
+  grid-template-rows:auto 1fr auto;
+  padding:clamp(28px,4vh,56px) clamp(24px,4.5vw,64px);
+  background:var(--lime);color:var(--on-lime);
+}
+#flash{position:fixed;inset:0;background:#fff;opacity:0;pointer-events:none;z-index:9}
+.won-meta{display:flex;justify-content:space-between;font-family:var(--mono);font-size:14px;font-weight:700;letter-spacing:2px;text-transform:uppercase;gap:16px}
+.won-mid{display:grid;grid-template-columns:1fr 460px;gap:56px;align-items:center;min-height:0}
+.won-headline{
+  text-transform:uppercase;
+  font-family:var(--display);font-size:clamp(96px,17vmin,220px);line-height:.8;letter-spacing:-8px;
+  color:var(--ink);padding:14px 0;
+}
+.won-body{font-size:28px;font-weight:500;max-width:640px;line-height:1.4;margin:22px 0 30px}
+.won-body b{color:var(--ink)}
+.won-btns{display:flex;gap:16px;flex-wrap:wrap}
+.shot-btn{text-transform:uppercase;background:var(--ink);color:var(--lime);font-family:var(--display);font-size:30px;padding:20px 40px}
+.more-btn{text-transform:uppercase;background:var(--magenta);color:var(--ink);font-family:var(--display);font-size:30px;padding:20px 40px}
+.share-card{
+  background:var(--shell);color:var(--white);padding:40px;transform:rotate(1.5deg);
+  display:flex;flex-direction:column;gap:28px;
+}
+.share-card .plabel{font-family:var(--mono);font-size:12px;letter-spacing:3px;text-transform:uppercase;color:var(--dim)}
+.share-streak{display:flex;gap:20px;align-items:baseline}
+.share-streak .n{font-family:var(--display);font-size:120px;line-height:1;color:var(--lime);letter-spacing:-4px;padding:6px 0}
+.share-streak .t{text-transform:uppercase;font-family:var(--display);font-size:34px;color:var(--white)}
+.share-days{display:flex;gap:7px}
+.share-days i{width:26px;height:26px;background:var(--raised)}
+.share-days i.done{background:var(--lime)}
+.share-days i.today{background:var(--cyan)}
+.share-card hr{border:none;border-top:1px solid var(--raised)}
+.share-stats{font-family:var(--mono);font-size:14px;line-height:2.1;letter-spacing:1px;text-transform:uppercase;color:var(--muted)}
+.share-stats div{display:flex;justify-content:space-between;gap:16px}
+.share-stats b{color:var(--white);font-weight:700}
+.share-stats .bad b{color:var(--magenta)}
+.won-foot{display:flex;justify-content:space-between;align-items:center;gap:16px;font-family:var(--mono);font-size:14px;font-weight:700;text-transform:uppercase;letter-spacing:2px}
+.won-foot b{color:var(--ink)}
+body.card-focus #s-won > *:not(.won-mid),
+body.card-focus .won-mid > div:first-child{opacity:.12}
+body.card-focus .share-card{transform:rotate(0deg) scale(1.04)}
+
+/* =====================================================================
+   NARROW : one column, proven at 620x900 (board 07)
+   ===================================================================== */
+@media (max-width:1000px){
+  .lobby-mid{grid-template-columns:1fr;gap:28px}
+  .lobby-head{flex-direction:column}
+  .streak-badge .num{font-size:52px}
+  .lobby-foot{flex-direction:column;align-items:flex-start;gap:18px}
+  .keys{display:none}
+
+  #s-live{gap:20px;padding:32px}
+  .live-head{flex-direction:column;align-items:stretch;gap:10px}
+  .live-head-top{display:flex;justify-content:space-between;align-items:center}
+  .topic-pill{font-size:17px;padding:10px 14px;white-space:normal}
+  .live-mid{grid-template-columns:1fr;gap:18px;align-content:center}
+  .clock-label{font-size:12px;letter-spacing:6px}
+  .clock{font-size:clamp(110px,22vh,180px);margin-bottom:10px}
+  .voice-box{height:112px;width:100%}
+  .voice-box i{flex:1;width:auto}
+  .voice-box{gap:5px}
+  .voice-caption{font-size:11px}
+  .survive-count{font-size:11px}
+  .silence-label{font-size:28px}
+  .drain-track{height:32px}
+  .drain-scale{display:none}
+  .silence-warning{font-size:11px}
+
+  .won-mid{grid-template-columns:1fr;gap:28px}
+  .share-card{transform:none}
+  .lost-stats{gap:24px}
+  .lost-body,.won-body{font-size:20px}
+  .lost-btns,.won-btns{flex-direction:column;width:100%}
+  .lost-btns button,.won-btns button{width:100%}
+  .count-side{display:none}
+}
+
+@media (prefers-reduced-motion:reduce){
+  .listening,.silence-warning{animation:none}
+  .bzzzzt.shaking{animation:none}
+  .count-big.pop{animation:none}
+}
 </style>
 </head>
 <body>
 
-<header>
-  <div class="wordmark"><span class="dot"></span>One Minute Mic</div>
-  <div class="streak" id="streak">Day 0</div>
-</header>
-
-<main>
-
-  <!-- ============ HOME ============ -->
-  <section class="screen on" id="s-home">
+<!-- ================= 01 LOBBY ================= -->
+<section class="screen on" id="s-lobby">
+  <div class="lobby-head">
     <div>
-      <p class="eyebrow" style="margin-bottom:14px">The 60 second challenge</p>
-      <h1>Talk for a minute.<br><em>Do not pause.</em></h1>
+      <h1 class="display wordmark">One Minute<br><em>Mic</em></h1>
+      <p class="tagline">Talk for 60 seconds. Stop talking and you're out.</p>
     </div>
-    <p class="lede">You get a random topic and sixty seconds. Go quiet for too long and you are out. That is the whole game.</p>
-
-    <div class="picker">
-      <p class="eyebrow">Pick your topics</p>
-      <div class="row" id="packs"></div>
+    <div class="streak-badge">
+      <span class="display num" id="lobby-streak">0</span>
+      <span class="lbl">day
+streak
+●●●●●</span>
     </div>
+  </div>
 
-    <div class="picker">
-      <p class="eyebrow">How long you can pause</p>
-      <div class="row" id="levels"></div>
-    </div>
-
-    <button class="btn" id="go">Give me a topic</button>
-    <p class="hint">Nothing is recorded. Nothing is uploaded. The microphone is only used to tell talking from silence, inside this tab.</p>
-  </section>
-
-  <!-- ============ READY ============ -->
-  <section class="screen" id="s-ready">
-    <p class="eyebrow" id="ready-label">Your topic</p>
-    <div class="topic-card">
-      <div class="topic" id="topic-text"></div>
-      <div class="wordlist" id="topic-words" style="display:none"></div>
-    </div>
-    <button class="btn acid" id="start">Start the minute</button>
-    <div class="row" style="gap:8px">
-      <button class="btn ghost" id="reroll" style="flex:1">Another topic</button>
-      <button class="btn ghost" id="back" style="flex:1">Back</button>
-    </div>
-    <p class="hint">Hit start, then hold still for one second while it listens to the room.</p>
-  </section>
-
-  <!-- ============ LIVE ============ -->
-  <section class="screen" id="s-live">
-    <p class="eyebrow" id="live-topic" style="text-align:center"></p>
-    <div class="clock" id="clock">1:00</div>
-    <div class="bar"><i id="bar"></i></div>
-    <div class="meter" id="meter"></div>
-    <p class="pause-warn" id="warn">&nbsp;</p>
-    <button class="btn ghost" id="buzz">Buzz me out <span class="kbd">B</span></button>
-  </section>
-
-  <!-- ============ RESULT ============ -->
-  <section class="screen" id="s-result">
+  <div class="lobby-mid">
     <div>
-      <p class="eyebrow" id="result-eyebrow">Result</p>
-      <p class="verdict" id="verdict"></p>
+      <p class="picker-label">Pick your topic decks</p>
+      <div class="decks" id="decks"></div>
+      <p class="picker-label" style="margin-top:12px">How long can you pause?</p>
+      <div class="tols" id="tols"></div>
     </div>
-    <p class="lede" id="result-note"></p>
-    <div class="stats">
-      <div class="stat"><b id="st-time">0s</b><small>You lasted</small></div>
-      <div class="stat"><b id="st-best">0s</b><small>Your best</small></div>
-      <div class="stat"><b id="st-clean">0</b><small>Clean minutes</small></div>
+
+    <div class="mic-panel" id="mic-panel">
+      <p class="plabel">Mic check</p>
+      <div class="mic-bars" id="mic-bars"></div>
+      <p class="say" id="mic-say">Say anything. If the bars move, it can hear you.</p>
+      <hr>
+      <div class="mic-stats" id="mic-stats"></div>
     </div>
-    <button class="btn" id="again">Another one</button>
-    <button class="btn ghost" id="home">Back to the start</button>
-  </section>
+  </div>
 
-</main>
+  <div class="lobby-foot">
+    <div class="go-cta">
+      <button class="display go-btn" id="go">Hit space to go</button>
+      <p class="go-note">no account, no saving,
+nobody is listening but you</p>
+    </div>
+    <div class="keys">
+      <span class="key"><kbd>Space</kbd> start</span>
+      <span class="key"><kbd>B</kbd> buzz me out</span>
+    </div>
+  </div>
+</section>
 
-<footer>
-  Open source. Copy it, change the topics, make it yours.<br>
-  <span class="kbd">Space</span> starts and restarts. <span class="kbd">B</span> buzzes you out.
-</footer>
+<!-- ================= 02 TOPIC ================= -->
+<section class="screen" id="s-topic">
+  <div class="meta-row">
+    <span id="topic-meta"></span>
+    <span>pause allowed <b id="topic-tol"></b></span>
+  </div>
+  <div class="topic-stack">
+    <p class="topic-eyebrow">Your topic is</p>
+    <h2 class="topic-text" id="topic-text"></h2>
+    <div class="topic-btns">
+      <button class="lock-btn" id="lock">Give me this one</button>
+      <button class="skip-btn" id="skip">New topic ↻</button>
+    </div>
+    <p class="skips-left" id="skips-left"></p>
+  </div>
+  <div class="meta-row">
+    <span>streak <b id="topic-streak" style="color:var(--white)"></b></span>
+    <span class="keys"><span class="key"><kbd>Space</kbd> lock it in</span></span>
+  </div>
+</section>
+
+<!-- ================= 03 COUNTDOWN ================= -->
+<section class="screen" id="s-count">
+  <p class="count-topic" id="count-topic"></p>
+  <div class="count-mid">
+    <div class="count-big" id="count-big">3</div>
+    <div class="count-side" id="count-side"></div>
+  </div>
+  <div class="count-foot">
+    <span>Deep breath. Don't plan. Just start.</span>
+    <span>Mic live ●</span>
+  </div>
+</section>
+
+<!-- ================= 04 LIVE ================= -->
+<section class="screen" id="s-live">
+  <div id="vignette"></div>
+  <div class="live-head">
+    <div class="live-head-top">
+      <span class="round-meta" id="round-meta"></span>
+      <span class="listening">● Listening</span>
+    </div>
+    <div class="live-head-left">
+      <span class="topic-pill" id="live-topic"></span>
+    </div>
+  </div>
+
+  <div class="live-mid">
+    <div>
+      <p class="clock-label">Seconds left</p>
+      <div class="display clock" id="clock">60</div>
+      <div class="survive-row">
+        <div class="survive-track"><i id="survive-fill"></i></div>
+        <span class="survive-count" id="survive-count">0 / 60 survived</span>
+      </div>
+    </div>
+    <div class="voice-col">
+      <p class="voice-label">It hears you</p>
+      <div class="voice-box" id="voice-box"></div>
+      <p class="voice-caption">volume doesn't matter.<br>only whether you're talking.</p>
+    </div>
+  </div>
+
+  <div class="silence-panel">
+    <div class="silence-top">
+      <span class="silence-label" id="silence-label"></span>
+      <span class="silence-warning" id="silence-warning">Say something. Anything.</span>
+    </div>
+    <div class="drain-track">
+      <i id="drain-fill"></i>
+      <em style="left:25%"></em><em style="left:50%"></em><em style="left:75%"></em>
+    </div>
+    <div class="drain-scale" id="drain-scale"></div>
+  </div>
+
+  <div class="live-foot">
+    <span>Pauses used this round <b id="pauses-used">0</b> · longest <b id="longest-pause">0.0s</b></span>
+    <span class="keys"><span class="key"><kbd>B</kbd> buzz me out</span></span>
+  </div>
+</section>
+
+<!-- ================= 05 BUZZED OUT ================= -->
+<section class="screen" id="s-lost">
+  <div class="lost-meta">
+    <span id="lost-topic"></span>
+    <span id="lost-at"></span>
+  </div>
+  <div class="lost-mid">
+    <div class="bzzzzt" id="bzzzzt">BZZZZT!</div>
+    <h2 class="lost-headline" id="lost-headline"></h2>
+    <p class="lost-body" id="lost-body"></p>
+    <div class="lost-stats">
+      <div class="stat"><small>Lasted</small><b id="lost-lasted">00:05</b></div>
+      <div class="stat"><small>Streak</small><b id="lost-streak">0 → 0</b></div>
+      <div class="stat"><small>Today's attempts</small><b id="lost-attempts">0</b></div>
+    </div>
+    <div class="lost-btns">
+      <button class="btn-dark" id="same-again">Same topic, again</button>
+      <button class="btn-lime" id="lost-new">New topic</button>
+    </div>
+  </div>
+  <div class="lost-foot">
+    <span>Streak survives until midnight. You have time.</span>
+    <span class="keys"><span class="key invert"><kbd>Space</kbd> go again</span></span>
+  </div>
+</section>
+
+<!-- ================= 06 YOU MADE IT ================= -->
+<section class="screen" id="s-won">
+  <div class="won-meta">
+    <span id="won-date">One Minute Mic</span>
+    <span>zero buzzes. one clean minute.</span>
+  </div>
+  <div class="won-mid">
+    <div>
+      <h2 class="won-headline">You<br>survived</h2>
+      <p class="won-body" id="won-body"></p>
+      <div class="won-btns">
+        <button class="shot-btn" id="shot">Screenshot this</button>
+        <button class="more-btn" id="more">One more minute</button>
+      </div>
+    </div>
+    <div class="share-card" id="share-card">
+      <p class="plabel">Banked</p>
+      <div class="share-streak">
+        <span class="n" id="card-streak">1</span>
+        <span class="t" id="card-streak-label">day streak</span>
+      </div>
+      <div class="share-days" id="share-days"></div>
+      <hr>
+      <div class="share-stats" id="share-stats"></div>
+    </div>
+  </div>
+  <div class="won-foot">
+    <span id="won-tomorrow"></span>
+    <span class="keys"><span class="key invert"><kbd>Space</kbd> go again</span><span class="key invert"><kbd>B</kbd> buzz me out</span></span>
+  </div>
+</section>
+
+<div id="flash"></div>
 
 <script>
 /* =====================================================================
    One Minute Mic
-   A random topic, a 60 second timer, and a microphone that only ever
+   A random topic, a 60 second clock, and a microphone that only ever
    asks one question: are you still talking?
 
-   Nothing leaves this file. No accounts, no keys, no network calls.
-   MIT licensed. Change the lists below and it is a different app.
+   Everything runs in this one file. No accounts, no network calls,
+   no recording : the mic level is read and thrown away, frame by frame.
+   MIT licensed. Change the decks below and it is a different game.
    ===================================================================== */
 
-/* ---------- 1. THE TOPICS. Edit these freely. ---------- */
-const PACKS = {
-  everyday: {
-    label: 'Everyday',
-    topics: [
-      'The best meal you have ever eaten',
-      'Something you are genuinely bad at',
-      'A place you go to think',
-      'The last thing that made you laugh out loud',
-      'Something you kept for far too long',
-      'How you take your coffee, and why',
-      'A rule your family had',
-      'The worst haircut you ever had',
-      'Something you are saving up for',
-      'A song you can never skip',
-      'The first job you ever had',
-      'Something you lost and never found',
-      'A smell that takes you straight back',
-      'How you spend a free Sunday',
-      'A skill you want but will never learn',
-      'The best advice you ignored',
-      'Something everyone likes that you do not',
-      'A stranger you still think about',
-      'Your morning, minute by minute',
-      'The last thing you fixed yourself',
-      'A book you never finished',
-      'Somewhere you would move to tomorrow',
-      'How you argue',
-      'A tradition you kept',
-      'The most useless thing you own',
-      'Something you are quietly superstitious about',
-      'What you would do with a free hour today',
-      'A photo you keep for no good reason',
-      'Something you learned far too late',
-      'The best thing about where you live',
-      'A time you got completely lost',
-      'What you do when you cannot sleep',
-      'The last text message you sent',
-      'A gift you still use',
-      'Something you pretend to understand',
-      'Your first memory',
-      'A queue you had to wait in',
-      'How you pack a suitcase',
-      'A day you would happily live again',
-      'The chair you always sit in'
-    ]
-  },
-  work: {
-    label: 'Work',
-    topics: [
-      'A meeting that should have been an email',
-      'The best manager you ever had',
-      'How you decide what to do first',
-      'A mistake that taught you something',
-      'Why your job is harder than it looks',
-      'The one tool you could not work without',
-      'How you say no',
-      'A deadline you missed',
-      'What you would change about your industry',
-      'How you prepare for a hard conversation',
-      'The worst interview question',
-      'Something you were promoted for',
-      'How you learn a new skill',
-      'A person who changed your career',
-      'What you do in the first hour of work',
-      'Why good people quit',
-      'How you handle being wrong in public',
-      'A project that failed',
-      'What good feedback sounds like',
-      'How you price your work',
-      'The part of your job nobody sees',
-      'A habit that made you better at your job',
-      'How you run a meeting',
-      'What you look for when you hire',
-      'The last thing you automated',
-      'How you explain your job to a child',
-      'A rule you quietly break at work',
-      'What burnout actually felt like',
-      'How you follow up without being annoying',
-      'The email you rewrote five times',
-      'Something you do that is not in your job description',
-      'How you decide to trust someone',
-      'A skill everyone says matters that does not',
-      'How you keep track of everything',
-      'What you wish you had asked for',
-      'A customer who taught you something',
-      'How you start a conversation with a stranger',
-      'The advice you give every beginner',
-      'What you would do differently on day one',
-      'The last thing you changed your mind about'
-    ]
-  },
-  opinions: {
-    label: 'Opinions',
-    topics: [
-      'Phones should be banned in schools',
-      'Being on time is a form of respect',
-      'Most advice is autobiography',
-      'Talent is overrated',
-      'Small talk is worth learning properly',
-      'Working from home makes you worse at your job',
-      'People should say what they earn',
-      'Everyone should be able to cook five meals',
-      'Fiction teaches you more than business books do',
-      'Meetings are where decisions go to die',
-      'Motivation is a myth',
-      'You learn more from teaching than from studying',
-      'Sport teaches you more than school does',
-      'Nobody needs a car in a city',
-      'You should quit things faster',
-      'Being busy is not the same as being useful',
-      'Handwriting still matters',
-      'Never take advice from someone with nothing to lose',
-      'Free time should not be optimised',
-      'Group projects are unfair',
-      'Ambition is a trait, not a choice',
-      'Say the number first',
-      'Confidence can be trained like a muscle',
-      'The customer is often wrong',
-      'Good design is invisible',
-      'Hard work is not the hard part',
-      'Everyone should speak in public once a month',
-      'Perfectionism is procrastination in a nice coat',
-      'Keep a hobby you are bad at',
-      'Comparison is useful in small doses',
-      'There is no such thing as self made',
-      'Write things down in front of people',
-      'Money changes people less than we think',
-      'Boredom is good for you',
-      'Everyone should serve customers for a year',
-      'Deadlines make better work than inspiration',
-      'Most rules are just old decisions',
-      'You should explain your job in one sentence',
-      'Silence is a skill',
-      'Practice beats confidence'
-    ]
-  }
+/* ---------- 1. THE DECKS. Edit these freely. ---------- */
+const DECKS = {
+  office: { label:'Office Life', accent:'lime', topics:[
+    'A meeting that should have been an email',
+    'The best manager you ever had',
+    'How you decide what to do first',
+    'A mistake that taught you something',
+    'Why your job is harder than it looks',
+    'The one tool you could not work without',
+    'How you say no',
+    'A deadline you missed',
+    'What you would change about your industry',
+    'How you prepare for a hard conversation',
+    'The worst interview question',
+    'Something you were promoted for',
+    'How you learn a new skill',
+    'A person who changed your career',
+    'What you do in the first hour of work',
+    'Why good people quit',
+    'How you handle being wrong in public',
+    'A project that failed',
+    'What good feedback sounds like',
+    'How you price your work',
+    'The part of your job nobody sees',
+    'A habit that made you better at your job',
+    'How you run a meeting',
+    'What you look for when you hire',
+    'The last thing you automated',
+    'How you explain your job to a child',
+    'A rule you quietly break at work',
+    'What burnout actually felt like',
+    'How you follow up without being annoying',
+    'The email you rewrote five times',
+    'Something you do that is not in your job description',
+    'How you decide to trust someone',
+    'A skill everyone says matters that does not',
+    'How you keep track of everything',
+    'What you wish you had asked for',
+    'A customer who taught you something',
+    'The advice you give every beginner',
+    'What you would do differently on day one',
+    'The office fridge, and its politics',
+    'The last thing you changed your mind about'
+  ]},
+  embarrassing: { label:'Embarrassing', accent:'lime', topics:[
+    'The worst haircut you ever had',
+    'A time you waved at someone who was not waving at you',
+    'Your most public trip or fall',
+    'A text sent to the wrong person',
+    'A lie you got caught in',
+    'A nickname you did not choose',
+    'A date that went wrong',
+    'The last time you sang in public',
+    'Forgetting someone’s name mid-sentence',
+    'An outfit you thought was cool at the time',
+    'A door you pushed when it said pull',
+    'Falling asleep somewhere you should not have',
+    'A joke that landed with total silence',
+    'A time you clapped when nobody else did',
+    'Getting caught talking about someone',
+    'The reply-all you cannot take back',
+    'A time you pretended to know a stranger',
+    'Walking confidently into the wrong room',
+    'Your voice cracking at the worst moment',
+    'A gift you visibly did not like',
+    'The time you called the teacher mum',
+    'Being locked out in an embarrassing state',
+    'A dance floor decision you regret',
+    'A photo of you that should not exist',
+    'Laughing at the worst possible moment',
+    'A time you were badly overdressed',
+    'A word you mispronounced for years',
+    'A hobby phase you now deny',
+    'A voicemail you wish you could delete',
+    'Being caught singing in the car'
+  ]},
+  deep: { label:'Deep End', accent:'cyan', topics:[
+    'Silence is a skill',
+    'Something you are genuinely bad at',
+    'What you would tell yourself ten years ago',
+    'A belief you changed your mind about',
+    'What you are avoiding right now',
+    'The last time you cried',
+    'What enough looks like for you',
+    'A friendship that ended',
+    'What you inherited from your parents besides things',
+    'The hardest thing you have said out loud',
+    'What you do with envy',
+    'A risk you did not take',
+    'What home means',
+    'The person you owe an apology',
+    'What you want people to say about you',
+    'A fear you have outgrown',
+    'What you pretend not to care about',
+    'The decision that changed everything',
+    'What loneliness feels like for you',
+    'A compliment you never forgot',
+    'What you would do if nobody could see you',
+    'The thing you keep starting over',
+    'What forgiveness costs',
+    'Who you call when it all goes wrong',
+    'What you know for sure',
+    'A promise you kept',
+    'What you miss that you did not expect to miss',
+    'The version of you that almost happened',
+    'What rest actually looks like',
+    'The question you hope nobody asks'
+  ]},
+  hottakes: { label:'Hot Takes', accent:'lime', topics:[
+    'Phones should be banned in schools',
+    'Being on time is a form of respect',
+    'Most advice is autobiography',
+    'Talent is overrated',
+    'Small talk is worth learning properly',
+    'Working from home makes you worse at your job',
+    'People should say what they earn',
+    'Everyone should be able to cook five meals',
+    'Fiction teaches you more than business books do',
+    'Meetings are where decisions go to die',
+    'Motivation is a myth',
+    'You learn more from teaching than from studying',
+    'Sport teaches you more than school does',
+    'Nobody needs a car in a city',
+    'You should quit things faster',
+    'Being busy is not the same as being useful',
+    'Handwriting still matters',
+    'Never take advice from someone with nothing to lose',
+    'Free time should not be optimised',
+    'Group projects are unfair',
+    'Ambition is a trait, not a choice',
+    'Say the number first',
+    'Confidence can be trained like a muscle',
+    'The customer is often wrong',
+    'Good design is invisible',
+    'Hard work is not the hard part',
+    'Everyone should speak in public once a month',
+    'Perfectionism is procrastination in a nice coat',
+    'Keep a hobby you are bad at',
+    'Comparison is useful in small doses',
+    'There is no such thing as self made',
+    'Money changes people less than we think',
+    'Boredom is good for you',
+    'Everyone should serve customers for a year',
+    'Deadlines make better work than inspiration',
+    'Most rules are just old decisions',
+    'You should explain your job in one sentence',
+    'Practice beats confidence'
+  ]},
+  nonsense: { label:'Nonsense', accent:'cyan', topics:[
+    'In defence of the pigeon',
+    'Explain stairs to someone who has never seen them',
+    'Why soup is a drink, or absolutely is not',
+    'The secret life of traffic cones',
+    'Monday is the best day and you can prove it',
+    'The rules of a sport you just invented',
+    'Where the missing socks actually go',
+    'A conspiracy theory about garden gnomes',
+    'The correct way to eat a biscuit',
+    'If animals could file complaints',
+    'The moon is showing off and needs to stop',
+    'Official instructions for hugging',
+    'A eulogy for your least favourite vegetable',
+    'Escalators are just stairs with confidence',
+    'What clouds are for',
+    'Your campaign speech for Mayor of the Sea',
+    'Why cats have decided not to talk to us',
+    'A product pitch for bottled silence',
+    'The etiquette of revolving doors',
+    'What bread thinks about all day',
+    'A weather forecast for your emotions',
+    'The case for wearing a cape to work',
+    'How to apologise to a robot',
+    'What the last dodo said',
+    'A tour of your house for a ghost',
+    'Why wizards would be terrible flatmates',
+    'The hidden agenda of seagulls',
+    'Rules for time travellers at dinner',
+    'What your shoes say about each other',
+    'An acceptance speech for an award you did not win'
+  ]},
+  childhood: { label:'Childhood', accent:'lime', topics:[
+    'A rule your family had',
+    'Your first memory',
+    'The game you invented as a kid',
+    'Your childhood best friend',
+    'A smell that takes you straight back',
+    'The teacher you still remember',
+    'What you wanted to be at age eight',
+    'Your childhood bedroom',
+    'A toy you loved to pieces',
+    'The family holiday that went wrong',
+    'Saturday mornings as a kid',
+    'The food you refused to eat',
+    'A time you got in real trouble',
+    'What was in your school lunch',
+    'The den you built',
+    'Pocket money, and what you spent it on',
+    'Your first pet, or the one you begged for',
+    'A song from being ten years old',
+    'The scary story that kept you up',
+    'Sports day',
+    'Your grandparents’ house',
+    'The thing you collected',
+    'Learning to ride a bike',
+    'Your school uniform',
+    'The kids next door',
+    'A birthday party you remember',
+    'What summer felt like',
+    'The show you rushed home to watch',
+    'Being the new kid',
+    'The first thing you ever won'
+  ]}
 };
 
-/* The harder version of the trend: four random words, worked in naturally. */
-const WORDS = ['anchor','ladder','velvet','harbour','static','copper','thunder','pocket','marble','cactus',
-  'signal','tunnel','ribbon','glacier','engine','pepper','mirror','saddle','custard','lantern',
-  'compass','blanket','fossil','magnet','orbit','pigeon','rescue','shovel','trumpet','whisper',
-  'basket','candle','driftwood','elbow','ferry','gravel','hammock','island','jigsaw','kettle',
-  'lobster','mustard','needle','otter','parcel','quilt','rooftop','saucer','tractor','umbrella',
-  'violin','walnut','yoghurt','zipper','bramble','clockwork','domino','eyebrow','freckle','goblin',
-  'hedge','inkwell','jacket','kayak','lemon','mitten','nutmeg','onion','puddle','quarry',
-  'rhubarb','satchel','thimble','vault','waffle','anvil','bellow','crater','dusk','ember',
-  'fable','gully','hollow','iron','jolt','knot','lattice','moss','nudge','oath',
-  'plinth','quiver','rust','shard','trench','usher','vessel','wick','yield','zenith'];
-
-const LEVELS = [
-  { key:'easy',     label:'Easy · 3s',     ms:3000, mic:true },
-  { key:'standard', label:'Standard · 1.5s', ms:1500, mic:true },
-  { key:'brutal',   label:'Brutal · 0.8s', ms:800,  mic:true },
-  { key:'off',      label:'Timer only',   ms:0,    mic:false }
+const TOLERANCES = [
+  { s:0.8, caption:'Brutal' },
+  { s:1.5, caption:'House rules' },
+  { s:2.5, caption:'Generous' },
+  { s:4.0, caption:'Barely a game' }
 ];
 
-/* ---------- 2. STATE ---------- */
-const ROUND_MS = 60000;
-const BARS = 28;
+const ROUND_S = 60;
+const SKIPS_PER_DAY = 3;
+const LIVE_BARS = 12, LOBBY_BARS = 11;
 
+/* ---------- 2. STATE & STORAGE ---------- */
 const state = {
-  pack: 'everyday',
-  level: 'standard',
-  topic: '',
-  words: [],
-  running: false,
-  startedAt: 0,
-  raf: 0,
-  lastLoud: 0,
-  micReady: false
+  screen:'lobby',
+  decks:new Set(['office','hottakes']),
+  tol:1.5,
+  topic:'', deckKey:'office', cardIndex:0,
+  micReady:false, micDenied:false,
+  running:false, startedAt:0,
+  lastVoice:0, talking:false,
+  levels:[], smoothed:0, floor:0.015, floorSet:false,
+  pausesUsed:0, longestPause:0, closeCall:false, pauseOpen:false,
+  round:0
 };
 
 const store = {
-  read(){
-    try { return JSON.parse(localStorage.getItem('omm') || '{}'); }
-    catch { return {}; }
-  },
+  read(){ try{ return JSON.parse(localStorage.getItem('one-minute-mic')||'{}'); }catch{ return {}; } },
   write(patch){
     const next = Object.assign(this.read(), patch);
-    try { localStorage.setItem('omm', JSON.stringify(next)); } catch {}
+    try{ localStorage.setItem('one-minute-mic', JSON.stringify(next)); }catch{}
     return next;
   }
 };
 
 const $ = id => document.getElementById(id);
-const pick = list => list[Math.floor(Math.random() * list.length)];
+const pick = list => list[Math.floor(Math.random()*list.length)];
+const todayStr = (d=new Date()) =>
+  d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 
-/* ---------- 3. AUDIO ---------- */
-let audioCtx = null, analyser = null, micStream = null, buffer = null, floor = 0.012;
+function daysAgoStr(n){ const d=new Date(); d.setDate(d.getDate()-n); return todayStr(d); }
+
+/* Streak breaks only when a full day passes with no clean minute. */
+function checkStreak(){
+  const s = store.read();
+  if (s.lastCleanDate && s.lastCleanDate < daysAgoStr(1) && (s.streak||0) > 0){
+    store.write({streak:0});
+  }
+}
+
+function dayCounter(key){
+  const s = store.read();
+  const rec = s[key] || {};
+  return rec.date === todayStr() ? rec.n : 0;
+}
+function bumpDayCounter(key, n){
+  store.write({[key]:{date:todayStr(), n}});
+}
+
+/* ---------- 3. AUDIO IN ---------- */
+let audioCtx=null, analyser=null, buffer=null;
 
 async function openMic(){
   if (state.micReady) return true;
-  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) return false;
-  try {
-    micStream = await navigator.mediaDevices.getUserMedia({
-      audio: { echoCancellation:false, noiseSuppression:false, autoGainControl:false }
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){ state.micDenied=true; return false; }
+  try{
+    const stream = await navigator.mediaDevices.getUserMedia({
+      audio:{ echoCancellation:false, noiseSuppression:false, autoGainControl:false }
     });
-    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    audioCtx = new (window.AudioContext||window.webkitAudioContext)();
     analyser = audioCtx.createAnalyser();
     analyser.fftSize = 1024;
     buffer = new Uint8Array(analyser.fftSize);
-    audioCtx.createMediaStreamSource(micStream).connect(analyser);
-    state.micReady = true;
+    audioCtx.createMediaStreamSource(stream).connect(analyser);
+    state.micReady = true; state.micDenied = false;
+    if (audioCtx.state === 'suspended'){
+      const kick = () => audioCtx.resume();
+      window.addEventListener('pointerdown', kick, {once:true});
+      window.addEventListener('keydown', kick, {once:true});
+    }
+    calibrate();
     return true;
-  } catch (err) {
+  }catch{
+    state.micDenied = true;
     return false;
   }
 }
 
-/* Root mean square of the current audio frame, 0 to about 0.5 in practice. */
-function level(){
+function rms(){
   if (!analyser) return 0;
   analyser.getByteTimeDomainData(buffer);
-  let sum = 0;
-  for (let i = 0; i < buffer.length; i++){
-    const v = (buffer[i] - 128) / 128;
-    sum += v * v;
-  }
-  return Math.sqrt(sum / buffer.length);
+  let sum=0;
+  for (let i=0;i<buffer.length;i++){ const v=(buffer[i]-128)/128; sum+=v*v; }
+  return Math.sqrt(sum/buffer.length);
 }
 
-/* Listen to the empty room for a moment so a noisy kitchen does not count as talking. */
-function calibrate(ms){
-  return new Promise(resolve => {
-    const readings = [];
-    const t = setInterval(() => readings.push(level()), 40);
-    setTimeout(() => {
-      clearInterval(t);
-      readings.sort((a,b) => a - b);
-      const median = readings[Math.floor(readings.length / 2)] || 0;
-      floor = Math.max(0.012, median * 2.6);
-      resolve();
-    }, ms);
-  });
+/* Listen to the empty room for ~500ms so a noisy kitchen never counts as talking. */
+function calibrate(){
+  const readings=[];
+  const t=setInterval(()=>readings.push(rms()),40);
+  setTimeout(()=>{
+    clearInterval(t);
+    readings.sort((a,b)=>a-b);
+    const median = readings[Math.floor(readings.length/2)]||0;
+    state.floor = Math.max(0.015, median*2.6);
+    state.floorSet = true;
+  },500);
 }
 
-function beep(freq, ms, type){
-  try {
-    const ctx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
-    const osc = ctx.createOscillator(), gain = ctx.createGain();
-    osc.type = type || 'sine';
-    osc.frequency.value = freq;
-    gain.gain.setValueAtTime(0.0001, ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.18, ctx.currentTime + 0.01);
-    gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + ms/1000);
-    osc.connect(gain).connect(ctx.destination);
-    osc.start();
-    osc.stop(ctx.currentTime + ms/1000 + 0.02);
-  } catch {}
+/* ---------- 4. AUDIO OUT ---------- */
+function buzzer(){
+  try{
+    const ctx = audioCtx || new (window.AudioContext||window.webkitAudioContext)();
+    [110,116].forEach(f=>{
+      const o=ctx.createOscillator(), g=ctx.createGain();
+      o.type='square'; o.frequency.value=f;
+      g.gain.setValueAtTime(.12, ctx.currentTime);
+      g.gain.exponentialRampToValueAtTime(.0001, ctx.currentTime+.4);
+      o.connect(g).connect(ctx.destination);
+      o.start(); o.stop(ctx.currentTime+.42);
+    });
+  }catch{}
+}
+function ding(){
+  try{
+    const ctx = audioCtx || new (window.AudioContext||window.webkitAudioContext)();
+    [523.25,659.25,783.99].forEach((f,i)=>{
+      const o=ctx.createOscillator(), g=ctx.createGain();
+      o.type='sine'; o.frequency.value=f;
+      const t0=ctx.currentTime+i*.09;
+      g.gain.setValueAtTime(.0001,t0);
+      g.gain.exponentialRampToValueAtTime(.15,t0+.02);
+      g.gain.exponentialRampToValueAtTime(.0001,t0+.35);
+      o.connect(g).connect(ctx.destination);
+      o.start(t0); o.stop(t0+.4);
+    });
+  }catch{}
 }
 
-/* ---------- 4. SCREENS ---------- */
+/* ---------- 5. SCREENS ---------- */
 function show(name){
-  document.querySelectorAll('.screen').forEach(s => s.classList.toggle('on', s.id === 's-' + name));
+  document.querySelectorAll('.screen').forEach(s=>s.classList.toggle('on', s.id==='s-'+name));
   state.screen = name;
+  document.body.classList.remove('card-focus');
 }
 
-function buildChips(){
-  const packs = $('packs');
-  const entries = Object.keys(PACKS).map(k => [k, PACKS[k].label]).concat([['words','Four words']]);
-  packs.innerHTML = '';
-  entries.forEach(([key, label]) => {
-    const b = document.createElement('button');
-    b.className = 'chip';
-    b.textContent = label;
-    b.setAttribute('aria-pressed', String(state.pack === key));
-    b.onclick = () => { state.pack = key; store.write({pack:key}); buildChips(); };
-    packs.appendChild(b);
-  });
-
-  const levels = $('levels');
-  levels.innerHTML = '';
-  LEVELS.forEach(l => {
-    const b = document.createElement('button');
-    b.className = 'chip';
-    b.textContent = l.label;
-    b.setAttribute('aria-pressed', String(state.level === l.key));
-    b.onclick = () => { state.level = l.key; store.write({level:l.key}); buildChips(); };
-    levels.appendChild(b);
-  });
+/* ---------- 6. LOBBY ---------- */
+function buildBars(el, n){
+  el.innerHTML='';
+  for (let i=0;i<n;i++) el.appendChild(document.createElement('i'));
 }
 
-function currentLevel(){
-  return LEVELS.find(l => l.key === state.level) || LEVELS[1];
-}
-
-function newTopic(){
-  if (state.pack === 'words'){
-    const set = new Set();
-    while (set.size < 4) set.add(pick(WORDS));
-    state.words = [...set];
-    state.topic = 'Work all four in: ' + state.words.join(', ');
-    $('ready-label').textContent = 'Work these four words in, naturally';
-    $('topic-text').style.display = 'none';
-    const box = $('topic-words');
-    box.style.display = 'flex';
-    box.innerHTML = state.words.map(w => '<span class="word">' + w + '</span>').join('');
-  } else {
-    state.words = [];
-    state.topic = pick(PACKS[state.pack].topics);
-    $('ready-label').textContent = 'Your topic';
-    $('topic-words').style.display = 'none';
-    const t = $('topic-text');
-    t.style.display = 'block';
-    t.textContent = state.topic;
-  }
-  $('live-topic').textContent = state.pack === 'words' ? state.words.join(' · ') : state.topic;
-}
-
-function buildMeter(){
-  const m = $('meter');
-  m.innerHTML = '';
-  for (let i = 0; i < BARS; i++) m.appendChild(document.createElement('span'));
-}
-
-function fmt(ms){
-  const s = Math.max(0, Math.ceil(ms / 1000));
-  return (s >= 60) ? '1:00' : '0:' + String(s).padStart(2,'0');
-}
-
-/* ---------- 5. THE ROUND ---------- */
-async function start(){
-  show('live');
-  $('clock').textContent = '1:00';
-  $('clock').classList.remove('warn');
-  $('bar').style.width = '100%';
-  $('warn').textContent = 'Listening to the room';
-  $('meter').classList.add('quiet');
-
-  const lvl = currentLevel();
-  let micOn = false;
-  if (lvl.mic){
-    micOn = await openMic();
-    if (micOn) await calibrate(900);
-  }
-  if (lvl.mic && !micOn){
-    $('warn').textContent = 'No microphone, timer only';
-  } else {
-    $('warn').innerHTML = '&nbsp;';
-  }
-
-  for (const n of ['3','2','1']){
-    $('clock').textContent = n;
-    beep(520, 90);
-    await new Promise(r => setTimeout(r, 620));
-  }
-  beep(760, 150);
-  $('clock').textContent = '1:00';
-
-  state.running = true;
-  state.startedAt = performance.now();
-  state.lastLoud = state.startedAt;
-  const useMic = micOn && lvl.ms > 0;
-  const bars = [...$('meter').children];
-  $('meter').classList.remove('quiet');
-
-  const tick = () => {
-    if (!state.running) return;
-    const now = performance.now();
-    const elapsed = now - state.startedAt;
-    const left = ROUND_MS - elapsed;
-
-    $('clock').textContent = fmt(left);
-    $('clock').classList.toggle('warn', left < 10000);
-    $('bar').style.width = Math.max(0, (left / ROUND_MS) * 100) + '%';
-
-    if (useMic){
-      const v = level();
-      const h = Math.min(100, Math.max(4, (v / 0.22) * 100));
-      const b = bars.shift();
-      if (b){ b.style.height = h + '%'; b.style.background = v > floor ? 'var(--wine-700)' : 'var(--wine-300)'; bars.push(b); }
-      if (v > floor) state.lastLoud = now;
-
-      const quiet = now - state.lastLoud;
-      if (elapsed > 1200 && quiet > lvl.ms){
-        return end(false, elapsed, 'You went quiet for longer than ' + (lvl.ms/1000) + ' seconds.');
-      }
-      $('warn').textContent = (elapsed > 1200 && quiet > lvl.ms * 0.55) ? 'Keep going' : ' ';
-    }
-
-    if (left <= 0) return end(true, ROUND_MS, '');
-    state.raf = requestAnimationFrame(tick);
-  };
-  state.raf = requestAnimationFrame(tick);
-}
-
-function end(survived, elapsed, note){
-  state.running = false;
-  cancelAnimationFrame(state.raf);
-  beep(survived ? 880 : 180, survived ? 400 : 500, survived ? 'sine' : 'square');
-
-  const seconds = Math.min(60, Math.round(elapsed / 1000));
-  const saved = store.read();
-  const best = Math.max(saved.best || 0, seconds);
-  let clean = saved.clean || 0;
-  let day = saved.day || 0;
-  let lastDate = saved.lastDate || '';
-
-  if (survived){
-    clean += 1;
-    const today = new Date().toISOString().slice(0,10);
-    if (lastDate !== today){ day += 1; lastDate = today; }
-  }
-  store.write({ best, clean, day, lastDate });
-
-  $('result-eyebrow').textContent = survived ? 'Clean minute' : 'Buzzed out';
-  $('verdict').textContent = survived ? 'You made it.' : 'Out at ' + seconds + ' seconds.';
-  $('result-note').textContent = note || (survived
-    ? 'Sixty seconds, no dead air. Do it again with a harder pause setting.'
-    : 'Pausing is the only way to lose. Slow down instead of stopping.');
-  $('st-time').textContent = seconds + 's';
-  $('st-best').textContent = best + 's';
-  $('st-clean').textContent = clean;
-  paintStreak();
-  show('result');
-}
-
-function paintStreak(){
+function renderLobby(){
   const s = store.read();
-  $('streak').textContent = 'Day ' + (s.day || 0);
+  $('lobby-streak').textContent = s.streak||0;
+
+  const decks = $('decks'); decks.innerHTML='';
+  Object.entries(DECKS).forEach(([key,d])=>{
+    const b=document.createElement('button');
+    b.className='deck '+d.accent+(state.decks.has(key)?' on':'');
+    b.innerHTML = d.label+'<small>'+d.topics.length+'</small>';
+    b.onclick=()=>{
+      if (state.decks.has(key)){ if (state.decks.size>1) state.decks.delete(key); }
+      else state.decks.add(key);
+      store.write({decks:[...state.decks]});
+      renderLobby();
+    };
+    decks.appendChild(b);
+  });
+
+  const tols = $('tols'); tols.innerHTML='';
+  TOLERANCES.forEach(t=>{
+    const b=document.createElement('button');
+    b.className='tol'+(state.tol===t.s?' on':'');
+    b.innerHTML='<span class="v">'+t.s.toFixed(1)+'s</span><span class="c">'+t.caption+'</span>';
+    b.onclick=()=>{ state.tol=t.s; store.write({tol:t.s}); renderLobby(); };
+    tols.appendChild(b);
+  });
+
+  const worst = (s.worstExit!=null) ? s.worstExit.toFixed(1)+' seconds' : 'none yet';
+  $('mic-stats').innerHTML =
+    'Best run <b>'+(s.bestRun||0)+' clean minutes</b><br>'+
+    'Banked <b>'+(s.cleanMinutes||0)+' minutes</b><br>'+
+    'Worst exit <b class="bad">'+worst+'</b>';
+
+  renderMicPanel();
 }
 
-/* ---------- 6. WIRING ---------- */
-$('go').onclick     = () => { newTopic(); show('ready'); };
-$('reroll').onclick = () => newTopic();
-$('back').onclick   = () => show('home');
-$('start').onclick  = () => start();
-$('buzz').onclick   = () => { if (state.running) end(false, performance.now() - state.startedAt, 'You buzzed yourself out.'); };
-$('again').onclick  = () => { newTopic(); show('ready'); };
-$('home').onclick   = () => show('home');
-
-document.addEventListener('keydown', e => {
-  if (e.code === 'Space'){
-    e.preventDefault();
-    if (state.screen === 'home')  return $('go').click();
-    if (state.screen === 'ready') return $('start').click();
-    if (state.screen === 'result')return $('again').click();
+function renderMicPanel(){
+  const panel = $('mic-panel');
+  if (state.micDenied){
+    panel.classList.add('blocked');
+    $('mic-say').innerHTML =
+      '<span class="display headline">No mic, no game</span><br><br>'+
+      'Nothing is recorded or uploaded. The mic is only read to tell talking from silence, inside this tab.<br><br>'+
+      '<button class="retry-btn" id="mic-retry">Try again</button>';
+    $('mic-retry').onclick = async ()=>{ await openMic(); renderLobby(); };
+    $('go').disabled = true;
+  } else {
+    panel.classList.remove('blocked');
+    $('mic-say').textContent = 'Say anything. If the bars move, it can hear you.';
+    $('go').disabled = false;
   }
-  if (e.key === 'b' || e.key === 'B') $('buzz').click();
+}
+
+/* ---------- 7. TOPIC ---------- */
+function drawTopic(){
+  const keys=[...state.decks];
+  const key=pick(keys);
+  const deck=DECKS[key];
+  state.deckKey=key;
+  state.topic=pick(deck.topics);
+  state.cardIndex=deck.topics.indexOf(state.topic)+1;
+  renderTopic();
+}
+function renderTopic(){
+  const s=store.read();
+  const deck=DECKS[state.deckKey];
+  $('topic-meta').textContent = deck.label+' · card '+state.cardIndex+' of '+deck.topics.length;
+  $('topic-tol').textContent = state.tol.toFixed(1)+'s';
+  $('topic-text').textContent = state.topic;
+  $('topic-streak').textContent = (s.streak||0)+' days';
+  const skipsLeft = SKIPS_PER_DAY - dayCounter('skips');
+  $('skips-left').textContent = skipsLeft+' skip'+(skipsLeft===1?'':'s')+' left today';
+  $('skip').disabled = skipsLeft<=0;
+}
+
+/* ---------- 8. COUNTDOWN ---------- */
+async function countdown(){
+  show('count');
+  $('count-topic').textContent = state.topic;
+  calibrate(); // re-read the room right before the round
+  const seq=['3','2','1'];
+  for (let i=0;i<seq.length;i++){
+    const big=$('count-big');
+    big.textContent=seq[i];
+    big.classList.remove('pop'); void big.offsetWidth; big.classList.add('pop');
+    const side=$('count-side'); side.innerHTML='';
+    seq.forEach((n,j)=>{
+      if (j===i) return;
+      const el=document.createElement('span');
+      el.className='n '+(j<i?'spent':(j===i+1?'next':''));
+      el.textContent=n;
+      side.appendChild(el);
+    });
+    const talk=document.createElement('span');
+    talk.className='talk'; talk.textContent='TALK!';
+    side.appendChild(talk);
+    await new Promise(r=>setTimeout(r,750));
+    if (state.screen!=='count') return; // user bailed
+  }
+  startRound(); // hard cut, no transition : deliberate
+}
+
+/* ---------- 9. THE LIVE MINUTE ---------- */
+function startRound(){
+  state.round++;
+  state.running=true;
+  state.startedAt=performance.now();
+  state.lastVoice=state.startedAt;
+  state.pausesUsed=0; state.longestPause=0; state.closeCall=false; state.pauseOpen=false;
+  state.levels=[];
+  bumpDayCounter('attempts', dayCounter('attempts')+1);
+
+  const s=store.read();
+  $('round-meta').textContent='Round '+state.round+' · streak '+(s.streak||0);
+  $('live-topic').textContent=state.topic;
+  buildBars($('voice-box'), LIVE_BARS);
+  const t=state.tol;
+  $('drain-scale').innerHTML =
+    '<span>0.0s</span><span>'+(t/3).toFixed(1)+'s</span><span>'+(t*2/3).toFixed(1)+'s</span><span>'+t.toFixed(1)+'s · BUZZ</span>';
+  show('live');
+}
+
+/* One master loop drives the lobby meter and the live round. */
+function frame(){
+  requestAnimationFrame(frame);
+  if (!state.micReady) return;
+
+  const v=rms();
+  // EMA: snappy on the way up, calmer on the way down
+  state.smoothed += (v>state.smoothed?0.2:0.4)*(v-state.smoothed);
+  state.talking = state.floorSet && state.smoothed > state.floor;
+
+  state.levels.push(state.smoothed);
+  if (state.levels.length>LIVE_BARS) state.levels.shift();
+
+  if (state.screen==='lobby') paintMeter($('mic-bars'), LOBBY_BARS, true);
+
+  if (state.screen==='live' && state.running){
+    const now=performance.now();
+    const elapsed=(now-state.startedAt)/1000;
+    const left=ROUND_S-elapsed;
+
+    $('clock').textContent=Math.max(0,Math.ceil(left));
+    $('survive-fill').style.width=Math.min(100,(elapsed/ROUND_S)*100)+'%';
+    $('survive-count').textContent=Math.min(60,Math.floor(elapsed))+' / 60 survived';
+    paintMeter($('voice-box'), LIVE_BARS, false);
+
+    if (state.talking) state.lastVoice=now;
+    const quiet=(now-state.lastVoice)/1000;
+    const remaining=Math.max(0, state.tol-quiet);
+    const drained=1-remaining/state.tol;
+
+    // pause bookkeeping
+    if (quiet>=0.3 && !state.pauseOpen){ state.pauseOpen=true; state.pausesUsed++; }
+    if (quiet<0.05) state.pauseOpen=false;
+    if (quiet>state.longestPause) state.longestPause=quiet;
+    if (drained>=0.75) state.closeCall=true;
+
+    $('silence-label').textContent='SILENCE: '+remaining.toFixed(1)+'s LEFT';
+    $('drain-fill').style.width=(remaining/state.tol*100)+'%';
+    $('vignette').style.opacity=drained;
+    $('silence-warning').classList.toggle('show', drained>0.3);
+    $('pauses-used').textContent=state.pausesUsed;
+    $('longest-pause').textContent=Math.min(state.longestPause,state.tol).toFixed(1)+'s';
+
+    if (left<=0) return win();
+    if (remaining<=0) return lose(elapsed, quiet, false);
+  }
+}
+
+function paintMeter(box, n, isLobby){
+  const bars=box.children;
+  if (bars.length!==n) buildBars(box,n);
+  for (let i=0;i<n;i++){
+    const idx=state.levels.length-n+i;
+    const lv=idx>=0?state.levels[idx]:0;
+    const bar=bars[i];
+    bar.style.height=Math.min(100,Math.max(4,(lv/0.22)*100))+'%';
+    const hot=state.floorSet && lv>state.floor;
+    bar.className = hot ? (isLobby && i===n-2 ? 'peak' : 'hot') : (idx>=0&&state.levels[idx]>state.floor*0.5?'cold':'');
+  }
+}
+
+/* ---------- 10. ENDINGS ---------- */
+const ONES=['ZERO','ONE','TWO','THREE','FOUR','FIVE','SIX','SEVEN','EIGHT','NINE'];
+
+function fmtClock(s){
+  const sec=Math.min(60,Math.floor(s));
+  return '00:'+String(sec).padStart(2,'0');
+}
+
+function lose(elapsed, quiet, selfBuzz){
+  state.running=false;
+  buzzer();
+  const sec=Math.floor(elapsed);
+  const s=store.read();
+  const worst=(s.worstExit==null)?elapsed:Math.min(s.worstExit,elapsed);
+  store.write({worstExit:Math.round(worst*10)/10, runNow:0});
+
+  $('lost-topic').textContent=state.topic;
+  $('lost-at').textContent=(selfBuzz?'self-buzz at ':'silence detected at ')+fmtClock(elapsed);
+
+  let headline;
+  if (selfBuzz) headline='YOU RANG THE BELL.';
+  else if (sec<10) headline=(ONES[sec]||sec)+' SECONDS. '+(ONES[sec]||sec)+'.';
+  else if (sec>=50) headline='SO CLOSE IT HURTS.';
+  else headline=sec+' SECONDS.';
+  $('lost-headline').textContent=headline;
+
+  $('lost-body').textContent = selfBuzz
+    ? 'You buzzed yourself out at '+fmtClock(elapsed).replace('00:','')+' seconds. Honourable, technically.'
+    : 'You went quiet for '+quiet.toFixed(1)+' seconds, which is '+(quiet-state.tol).toFixed(1)+' more than you agreed to. Rules are rules.';
+
+  $('lost-lasted').textContent=fmtClock(elapsed);
+  $('lost-streak').textContent=(s.streak||0)+' → '+(s.streak||0);
+  $('lost-attempts').textContent=dayCounter('attempts');
+
+  const bz=$('bzzzzt');
+  bz.classList.remove('shaking'); void bz.offsetWidth; bz.classList.add('shaking');
+  show('lost');
+}
+
+function win(){
+  state.running=false;
+  ding();
+  const s=store.read();
+  const today=todayStr();
+  let streak=s.streak||0;
+  if (s.lastCleanDate!==today) streak+=1; // first clean minute of the day
+  const runNow=(s.runNow||0)+1;
+  const cleanDates=[...new Set([...(s.cleanDates||[]), today])].slice(-400);
+  store.write({
+    streak, lastCleanDate:today,
+    cleanMinutes:(s.cleanMinutes||0)+1,
+    runNow, bestRun:Math.max(s.bestRun||0, runNow),
+    closeCalls:(s.closeCalls||0)+(state.closeCall?1:0),
+    cleanDates
+  });
+  renderWon();
+  show('won');
+  // ~80ms white flash on entry : the one allowed transition
+  if (!matchMedia('(prefers-reduced-motion: reduce)').matches){
+    const f=$('flash');
+    f.style.opacity=1;
+    setTimeout(()=>{f.style.transition='opacity 120ms';f.style.opacity=0;
+      setTimeout(()=>f.style.transition='',200);},80);
+  }
+}
+
+function renderWon(){
+  const s=store.read();
+  const d=new Date();
+  const months=['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
+  $('won-date').textContent='One Minute Mic · '+d.getDate()+' '+months[d.getMonth()]+' '+d.getFullYear();
+  $('won-body').innerHTML='Sixty seconds on <b>“'+state.topic+'”</b> and you never once stopped talking.';
+
+  $('card-streak').textContent=s.streak||1;
+  $('card-streak-label').textContent='day streak';
+  const days=$('share-days'); days.innerHTML='';
+  const set=new Set(s.cleanDates||[]);
+  for (let i=6;i>=0;i--){
+    const el=document.createElement('i');
+    const ds=daysAgoStr(i);
+    if (i===0) el.className='today';
+    else if (set.has(ds)) el.className='done';
+    days.appendChild(el);
+  }
+  $('share-stats').innerHTML=
+    '<div>Clean minutes <b>'+(s.cleanMinutes||0)+'</b></div>'+
+    '<div>Longest pause <b>'+Math.min(state.longestPause,state.tol).toFixed(1)+'s</b></div>'+
+    '<div class="bad">Close calls <b>'+(s.closeCalls||0)+'</b></div>'+
+    '<div>Attempts today <b>'+dayCounter('attempts')+'</b></div>';
+
+  const otherDecks=Object.entries(DECKS).filter(([k])=>!state.decks.has(k));
+  const tease=otherDecks.length?pick(otherDecks)[1].label:pick(Object.values(DECKS)).label;
+  $('won-tomorrow').innerHTML='Tomorrow’s deck: <b>'+tease+'</b>';
+}
+
+/* ---------- 11. WIRING ---------- */
+$('go').onclick=()=>{ if(!$('go').disabled){ drawTopic(); show('topic'); } };
+$('lock').onclick=()=>countdown();
+$('skip').onclick=()=>{
+  if (dayCounter('skips')>=SKIPS_PER_DAY) return;
+  bumpDayCounter('skips', dayCounter('skips')+1);
+  drawTopic();
+};
+$('same-again').onclick=()=>countdown();
+$('lost-new').onclick=()=>{ drawTopic(); show('topic'); };
+$('more').onclick=()=>{ drawTopic(); show('topic'); };
+$('shot').onclick=()=>document.body.classList.toggle('card-focus');
+
+document.addEventListener('keydown', e=>{
+  if (e.repeat) return;
+  if (e.code==='Space'){
+    e.preventDefault(); // never scroll, never re-trigger a focused button
+    if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
+    if (state.screen==='lobby') return $('go').onclick();
+    if (state.screen==='topic') return countdown();
+    if (state.screen==='lost')  return countdown();          // same topic, again
+    if (state.screen==='won'){ drawTopic(); return show('topic'); }
+  }
+  if (e.key==='b'||e.key==='B'){
+    if (state.screen==='live' && state.running){
+      const elapsed=(performance.now()-state.startedAt)/1000;
+      lose(elapsed, 0, true);
+    }
+  }
 });
 
-const saved = store.read();
-if (saved.pack && (PACKS[saved.pack] || saved.pack === 'words')) state.pack = saved.pack;
-if (saved.level && LEVELS.some(l => l.key === saved.level)) state.level = saved.level;
-buildChips();
-buildMeter();
-paintStreak();
-show('home');
+/* ---------- 12. BOOT ---------- */
+(function boot(){
+  checkStreak();
+  const s=store.read();
+  if (Array.isArray(s.decks) && s.decks.every(k=>DECKS[k]) && s.decks.length) state.decks=new Set(s.decks);
+  if (TOLERANCES.some(t=>t.s===s.tol)) state.tol=s.tol;
+
+  buildBars($('mic-bars'), LOBBY_BARS);
+  renderLobby();
+  requestAnimationFrame(frame);
+  openMic().then(renderLobby);
+
+  /* Dev hook: ?screen=topic|count|live|lost|won renders that state with
+     mock data, for layout checks and screenshots. Harmless to ship. */
+  const dev=new URLSearchParams(location.search).get('screen');
+  if (dev){
+    state.topic='A meeting that should have been an email';
+    state.deckKey='office'; state.cardIndex=12; state.round=1;
+    if (dev==='live'){
+      show('live');
+      $('round-meta').textContent='Round 1 · streak 12';
+      $('live-topic').textContent=state.topic;
+      buildBars($('voice-box'), LIVE_BARS);
+      $('clock').textContent='23';
+      $('survive-fill').style.width='62%';
+      $('survive-count').textContent='37 / 60 survived';
+      $('silence-label').textContent='SILENCE: 0.8s LEFT';
+      $('drain-fill').style.width='53%';
+      $('drain-scale').innerHTML='<span>0.0s</span><span>0.5s</span><span>1.0s</span><span>1.5s · BUZZ</span>';
+      $('vignette').style.opacity=.6;
+      $('silence-warning').classList.add('show');
+      $('pauses-used').textContent='4';
+      $('longest-pause').textContent='1.2s';
+      [...$('voice-box').children].forEach((b,i)=>{b.style.height=(10+Math.abs(Math.sin(i*1.7))*80)+'%';b.className=i%3?'hot':'cold';});
+    } else if (dev==='lost'){
+      $('lost-topic').textContent=state.topic;
+      $('lost-at').textContent='silence detected at 00:05';
+      $('lost-headline').textContent='FIVE SECONDS. FIVE.';
+      $('lost-body').textContent='You went quiet for 1.6 seconds, which is 0.1 more than you agreed to. Rules are rules.';
+      $('lost-lasted').textContent='00:05';
+      $('lost-streak').textContent='12 → 12';
+      $('lost-attempts').textContent='7';
+      show('lost');
+    } else if (dev==='won'){
+      store.write({streak:13,cleanMinutes:42,closeCalls:3,cleanDates:[daysAgoStr(6),daysAgoStr(5),daysAgoStr(4),daysAgoStr(3),daysAgoStr(2),daysAgoStr(1),todayStr()]});
+      bumpDayCounter('attempts',8);
+      state.longestPause=1.3;
+      renderWon(); show('won');
+    } else if (dev==='count'){
+      $('count-topic').textContent=state.topic;
+      $('count-big').textContent='2';
+      $('count-side').innerHTML='<span class="n spent">3</span><span class="n next">1</span><span class="talk">TALK!</span>';
+      show('count');
+    } else if (dev==='topic'){
+      renderTopic(); show('topic');
+    }
+  }
+})();
 </script>
 </body>
 </html>
