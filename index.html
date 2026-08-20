@@ -25,8 +25,8 @@
   --magenta:#ff2e88;
   --cyan:#2ee6ff;
   --white:#ffffff;
-  --muted:#a99ccc;
-  --dim:#8b7fb0;
+  --muted:#c3b7e4;
+  --dim:#a79bd0;
   --on-lime:#3d4a08;
   --on-magenta:#5c0630;
   --on-cyan:#0b3a44;
@@ -70,7 +70,7 @@ b,strong{font-weight:700}
 
 /* ---------- keycaps ---------- */
 .keys{display:flex;gap:26px;align-items:center}
-.key{display:flex;gap:12px;align-items:center;font-family:var(--mono);font-size:12px;letter-spacing:2px;color:var(--dim);text-transform:uppercase}
+.key{display:flex;gap:12px;align-items:center;font-family:var(--mono);font-size:14px;letter-spacing:2px;color:var(--dim);text-transform:uppercase}
 .key kbd{
   font-family:var(--mono);font-size:12px;letter-spacing:2px;color:var(--white);
   padding:10px 20px;border:2px solid var(--line);border-bottom-width:5px;
@@ -103,14 +103,14 @@ b,strong{font-weight:700}
 .streak-badge .lbl{font-family:var(--mono);font-size:12px;line-height:1.5;font-weight:700;letter-spacing:2px;text-transform:uppercase;white-space:pre-line}
 
 .lobby-mid{display:grid;grid-template-columns:1fr 400px;gap:48px;align-content:safe center;min-height:0}
-.picker-label{font-family:var(--mono);font-size:13px;letter-spacing:3px;text-transform:uppercase;color:var(--dim);margin-bottom:14px}
+.picker-label{font-family:var(--mono);font-size:14px;letter-spacing:3px;text-transform:uppercase;color:var(--dim);margin-bottom:14px}
 .decks{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;margin-bottom:26px}
 .deck{
   display:flex;justify-content:space-between;align-items:baseline;gap:12px;
   padding:14px 18px;font-family:var(--ui);font-weight:700;font-size:18px;
   background:var(--raised);color:var(--muted);text-align:left;
 }
-.deck small{font-family:var(--mono);font-size:13px;font-weight:400;opacity:.55}
+.deck small{font-family:var(--mono);font-size:13px;font-weight:400;opacity:.8}
 .deck.on{color:var(--ink)}
 .deck.on.lime{background:var(--lime)}
 .deck.on.cyan{background:var(--cyan)}
@@ -120,7 +120,7 @@ b,strong{font-weight:700}
   display:flex;flex-direction:column;gap:16px;align-self:start;margin-top:27px;
 }
 .mic-panel.blocked{border-color:var(--magenta);border-width:3px}
-.mic-panel .plabel{font-family:var(--mono);font-size:12px;letter-spacing:3px;text-transform:uppercase;color:var(--dim)}
+.mic-panel .plabel{font-family:var(--mono);font-size:13px;letter-spacing:3px;text-transform:uppercase;color:var(--dim)}
 .mic-panel .headline{text-transform:uppercase;font-family:var(--display);font-size:44px;color:var(--magenta);letter-spacing:-1px}
 .mic-bars{display:flex;gap:5px;height:84px;align-items:flex-end}
 .mic-bars i{width:12px;background:var(--line);min-height:6%}
@@ -128,7 +128,7 @@ b,strong{font-weight:700}
 .mic-bars i.peak{background:var(--cyan)}
 .mic-panel .say{font-size:16px;color:var(--white)}
 .mic-panel hr{border:none;border-top:1px solid var(--raised)}
-.mic-stats{font-family:var(--mono);font-size:12px;line-height:1.8;letter-spacing:1px;text-transform:uppercase;color:var(--dim)}
+.mic-stats{font-family:var(--mono);font-size:13px;line-height:1.8;letter-spacing:1px;text-transform:uppercase;color:var(--dim)}
 .mic-stats b{color:var(--white)}
 .mic-stats .bad{color:var(--magenta)}
 .retry-btn{text-transform:uppercase;background:var(--magenta);color:var(--ink);font-family:var(--display);font-size:22px;padding:12px 24px;align-self:flex-start;letter-spacing:0}
@@ -137,7 +137,7 @@ b,strong{font-weight:700}
 .go-cta{display:flex;gap:22px;align-items:center;margin-top:12px}
 .go-btn{text-transform:uppercase;background:var(--lime);color:var(--ink);font-family:var(--display);font-size:32px;padding:18px 56px 20px;letter-spacing:0}
 .go-btn[disabled]{background:var(--raised);color:var(--dim);cursor:not-allowed}
-.go-note{font-family:var(--mono);font-size:13px;color:var(--dim);white-space:pre-line}
+.go-note{font-family:var(--mono);font-size:14px;color:var(--dim);white-space:pre-line}
 
 /* =====================================================================
    02 : TOPIC
@@ -696,38 +696,6 @@ const DECKS = {
     'You should explain your job in one sentence',
     'Practice beats confidence'
   ]},
-  nonsense: { label:'Nonsense', accent:'cyan', topics:[
-    'In defence of the pigeon',
-    'Explain stairs to someone who has never seen them',
-    'Why soup is a drink, or absolutely is not',
-    'The secret life of traffic cones',
-    'Monday is the best day and you can prove it',
-    'The rules of a sport you just invented',
-    'Where the missing socks actually go',
-    'A conspiracy theory about garden gnomes',
-    'The correct way to eat a biscuit',
-    'If animals could file complaints',
-    'The moon is showing off and needs to stop',
-    'Official instructions for hugging',
-    'A eulogy for your least favourite vegetable',
-    'Escalators are just stairs with confidence',
-    'What clouds are for',
-    'Your campaign speech for Mayor of the Sea',
-    'Why cats have decided not to talk to us',
-    'A product pitch for bottled silence',
-    'The etiquette of revolving doors',
-    'What bread thinks about all day',
-    'A weather forecast for your emotions',
-    'The case for wearing a cape to work',
-    'How to apologise to a robot',
-    'What the last dodo said',
-    'A tour of your house for a ghost',
-    'Why wizards would be terrible flatmates',
-    'The hidden agenda of seagulls',
-    'Rules for time travellers at dinner',
-    'What your shoes say about each other',
-    'An acceptance speech for an award you did not win'
-  ]},
   childhood: { label:'Childhood', accent:'lime', topics:[
     'A rule your family had',
     'Your first memory',
@@ -759,102 +727,6 @@ const DECKS = {
     'The show you rushed home to watch',
     'Being the new kid',
     'The first thing you ever won'
-  ]},
-  movies: { label:'Movies', accent:'lime', topics:[
-    'A film you can quote start to finish',
-    'The movie you always recommend',
-    'A film everyone loves that you do not',
-    'The scariest film you ever watched',
-    'A movie that made you cry',
-    'The best film villain',
-    'A film you walked out of, or turned off',
-    'The movie you have rewatched the most',
-    'A remake that should never have happened',
-    'The best film to watch on a plane',
-    'A film that changed your mind about something',
-    'Your comfort movie',
-    'The best opening scene in any film',
-    'A sequel better than the original',
-    'The film you pretend you have seen',
-    'Your movie snack rules',
-    'A childhood film that does not hold up',
-    'The last film you saw in a cinema',
-    'An actor you would watch in anything',
-    'The film that scared you as a kid',
-    'A book that became a better film',
-    'Your favourite film soundtrack',
-    'The most quotable comedy',
-    'The film you would show an alien first',
-    'The best twist you never saw coming',
-    'A franchise that went on too long',
-    'The film you would live inside for a week',
-    'Black and white films, worth it or not',
-    'The best sports film',
-    'A film you love that is objectively bad'
-  ]},
-  tv: { label:'TV Shows', accent:'cyan', topics:[
-    'A show you have watched more than twice',
-    'The best series finale',
-    'The worst series finale',
-    'A show cancelled too soon',
-    'The show you tell everyone to watch',
-    'A character you would be friends with',
-    'The best TV theme tune',
-    'The show you watch to fall asleep',
-    'Reality TV you secretly love',
-    'A show that lost you halfway',
-    'The best TV villain',
-    'A plot twist that ruined a show',
-    'The show your family watched together',
-    'Binge it all or wait a week',
-    'A spin-off better than the original',
-    'The most rewatchable sitcom',
-    'A show you refuse to finish',
-    'The best documentary you have seen',
-    'A show that taught you something real',
-    'Subtitles on or off, defend it',
-    'The character who deserved better',
-    'A show you quote in real life',
-    'The best pilot episode',
-    'The game show you would actually win',
-    'A show everyone watched except you',
-    'The cliffhanger that hurt the most',
-    'Sport on TV versus being there',
-    'The ad you still remember',
-    'A show you would erase from memory just to watch it again',
-    'The show you were not allowed to watch'
-  ]},
-  books: { label:'Books', accent:'lime', topics:[
-    'The book you always give as a gift',
-    'A book that changed how you think',
-    'The first book you loved',
-    'A book everyone praises that bored you',
-    'The book you would hand a fifteen year old',
-    'Audiobooks count as reading, argue it',
-    'A character you never forgot',
-    'The book you own but never opened',
-    'Rereading, worth it or a waste',
-    'A book that made you laugh out loud',
-    'The best first line you remember',
-    'A library memory',
-    'Paper or ebook',
-    'The book that kept you up all night',
-    'A series you abandoned halfway',
-    'The book you read at the wrong age',
-    'Poetry, for you or not',
-    'A book you hid from someone',
-    'The bookshop you could live in',
-    'A true story better than fiction',
-    'The book you would write if you had to',
-    'School reading that ruined a classic',
-    'A cover that sold you a bad book',
-    'A book you have read more than three times',
-    'Where you read best',
-    'The last book you gave up on',
-    'A book you borrowed and never gave back',
-    'The book you defend in arguments',
-    'What you read as a teenager',
-    'The book you wish had a sequel'
   ]},
   storytime: { label:'Storytime', accent:'cyan', topics:[
     'The craziest thing that ever happened to you at work',
@@ -1327,15 +1199,18 @@ $('lost-new').onclick=()=>{ drawTopic(); show('topic'); };
 $('more').onclick=()=>{ drawTopic(); show('topic'); };
 $('shot').onclick=()=>document.body.classList.toggle('card-focus');
 
+function spaceAction(){
+  if (state.screen==='lobby') return $('go').onclick();
+  if (state.screen==='topic') return countdown();
+  if (state.screen==='lost')  return countdown();          // same topic, again
+  if (state.screen==='won'){ drawTopic(); return show('topic'); }
+}
 document.addEventListener('keydown', e=>{
   if (e.repeat) return;
   if (e.code==='Space'){
     e.preventDefault(); // never scroll, never re-trigger a focused button
     if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
-    if (state.screen==='lobby') return $('go').onclick();
-    if (state.screen==='topic') return countdown();
-    if (state.screen==='lost')  return countdown();          // same topic, again
-    if (state.screen==='won'){ drawTopic(); return show('topic'); }
+    spaceAction();
   }
   if (e.key==='b'||e.key==='B'){
     if (state.screen==='live' && state.running){
@@ -1343,6 +1218,12 @@ document.addEventListener('keydown', e=>{
       lose(elapsed, 0, true);
     }
   }
+});
+
+/* The "Space · go again" hints read as buttons, so a tap does what the key does. */
+document.querySelectorAll('.key').forEach(k=>{
+  const kbd=k.querySelector('kbd');
+  if (kbd && kbd.textContent==='Space'){ k.style.cursor='pointer'; k.onclick=spaceAction; }
 });
 
 /* ---------- 12. BOOT ---------- */
