@@ -151,7 +151,8 @@ b,strong{font-weight:700}
 .topic-stack{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:34px;text-align:center;min-height:0}
 .topic-eyebrow{font-family:var(--mono);font-size:15px;letter-spacing:6px;text-transform:uppercase;color:var(--lime)}
 .topic-text{
-  font-family:var(--display);font-size:clamp(56px,10vw,150px);line-height:.92;letter-spacing:-3px;
+  /* same rule as the win card: Anton needs em-scale tracking, never fixed px */
+  font-family:var(--display);font-size:clamp(56px,10vw,150px);line-height:1;letter-spacing:-0.01em;
   color:var(--white);max-width:1180px;text-wrap:balance;text-transform:uppercase;padding:10px 0;
 }
 .topic-btns{display:flex;gap:18px;align-items:center}
