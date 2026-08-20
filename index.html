@@ -92,9 +92,9 @@ b,strong{font-weight:700}
 }
 #s-lobby > *{position:relative}
 .lobby-head{display:flex;justify-content:space-between;align-items:flex-start;gap:24px}
-.wordmark{font-size:clamp(48px,6vw,88px);line-height:.86;letter-spacing:-2px;color:var(--white)}
+.wordmark{font-size:clamp(56px,9.5vw,180px);line-height:.86;letter-spacing:-0.01em;color:var(--white)}
 .wordmark em{font-style:normal;color:var(--lime)}
-.tagline{font-family:var(--mono);font-size:15px;color:var(--muted);margin-top:14px}
+.tagline{font-family:var(--mono);font-size:clamp(14px,1.2vw,18px);color:var(--muted);margin-top:18px}
 .streak-badge{
   background:var(--magenta);color:var(--ink);padding:18px 26px;transform:rotate(2deg);
   display:flex;gap:18px;align-items:center;flex:none;
@@ -102,21 +102,22 @@ b,strong{font-weight:700}
 .streak-badge .num{font-size:72px;letter-spacing:-2px}
 .streak-badge .lbl{font-family:var(--mono);font-size:12px;line-height:1.5;font-weight:700;letter-spacing:2px;text-transform:uppercase;white-space:pre-line}
 
-.lobby-mid{display:grid;grid-template-columns:1fr 400px;gap:48px;align-content:center;min-height:0}
+.lobby-mid{display:grid;grid-template-columns:1fr 400px;gap:48px;align-content:safe center;min-height:0}
 .picker-label{font-family:var(--mono);font-size:13px;letter-spacing:3px;text-transform:uppercase;color:var(--dim);margin-bottom:14px}
-.decks{display:flex;flex-wrap:wrap;gap:14px;margin-bottom:26px}
+.decks{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;margin-bottom:26px}
 .deck{
-  padding:12px 18px;font-family:var(--ui);font-weight:700;font-size:18px;
-  background:var(--raised);color:var(--muted);
+  display:flex;justify-content:space-between;align-items:baseline;gap:12px;
+  padding:14px 18px;font-family:var(--ui);font-weight:700;font-size:18px;
+  background:var(--raised);color:var(--muted);text-align:left;
 }
-.deck small{font-family:var(--mono);font-size:13px;font-weight:400;opacity:.55;margin-left:8px}
+.deck small{font-family:var(--mono);font-size:13px;font-weight:400;opacity:.55}
 .deck.on{color:var(--ink)}
 .deck.on.lime{background:var(--lime)}
 .deck.on.cyan{background:var(--cyan)}
 
 .mic-panel{
   background:var(--ink);border:2px solid var(--raised);padding:26px;
-  display:flex;flex-direction:column;gap:16px;align-self:center;
+  display:flex;flex-direction:column;gap:16px;align-self:start;margin-top:27px;
 }
 .mic-panel.blocked{border-color:var(--magenta);border-width:3px}
 .mic-panel .plabel{font-family:var(--mono);font-size:12px;letter-spacing:3px;text-transform:uppercase;color:var(--dim)}
@@ -132,8 +133,8 @@ b,strong{font-weight:700}
 .mic-stats .bad{color:var(--magenta)}
 .retry-btn{text-transform:uppercase;background:var(--magenta);color:var(--ink);font-family:var(--display);font-size:22px;padding:12px 24px;align-self:flex-start;letter-spacing:0}
 
-.lobby-foot{display:flex;justify-content:space-between;align-items:center;gap:24px}
-.go-cta{display:flex;gap:22px;align-items:center}
+.lobby-foot{display:flex;justify-content:flex-end;align-items:center;gap:24px}
+.go-cta{display:flex;gap:22px;align-items:center;margin-top:12px}
 .go-btn{text-transform:uppercase;background:var(--lime);color:var(--ink);font-family:var(--display);font-size:32px;padding:18px 56px 20px;letter-spacing:0}
 .go-btn[disabled]{background:var(--raised);color:var(--dim);cursor:not-allowed}
 .go-note{font-family:var(--mono);font-size:13px;color:var(--dim);white-space:pre-line}
@@ -310,7 +311,8 @@ body.card-focus .share-card{transform:rotate(0deg) scale(1.04)}
    NARROW : one column, proven at 620x900 (board 07)
    ===================================================================== */
 @media (max-width:1000px){
-  .lobby-mid{grid-template-columns:1fr;gap:28px}
+  #s-lobby{height:auto;min-height:100dvh;overflow-y:auto}
+  .lobby-mid{grid-template-columns:1fr;gap:28px;align-content:start}
   .lobby-head{flex-direction:column}
   .streak-badge .num{font-size:52px}
   .lobby-foot{flex-direction:column;align-items:flex-start;gap:18px}
@@ -370,6 +372,11 @@ streak
     <div>
       <p class="picker-label">Pick your topic deck</p>
       <div class="decks" id="decks"></div>
+      <div class="go-cta">
+        <button class="display go-btn" id="go">Hit space to go</button>
+        <p class="go-note">no account, no saving,
+nobody is listening but you</p>
+      </div>
     </div>
 
     <div class="mic-panel" id="mic-panel">
@@ -382,11 +389,6 @@ streak
   </div>
 
   <div class="lobby-foot">
-    <div class="go-cta">
-      <button class="display go-btn" id="go">Hit space to go</button>
-      <p class="go-note">no account, no saving,
-nobody is listening but you</p>
-    </div>
     <div class="keys">
       <span class="key"><kbd>Space</kbd> start</span>
       <span class="key"><kbd>B</kbd> buzz me out</span>
