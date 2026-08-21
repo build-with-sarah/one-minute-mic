@@ -311,7 +311,8 @@ body.card-focus .share-card{transform:rotate(0deg) scale(1.04)}
    NARROW : one column, proven at 620x900 (board 07)
    ===================================================================== */
 @media (max-width:1000px){
-  #s-lobby{height:auto;min-height:100dvh;overflow-y:auto}
+  /* end screens too: on short phones the share card and buttons fall below the fold */
+  #s-lobby,#s-lost,#s-won{height:auto;min-height:100dvh;overflow-y:auto}
   .lobby-mid{grid-template-columns:1fr;gap:28px;align-content:start}
   .lobby-head{flex-direction:column}
   .streak-badge .num{font-size:52px}
@@ -342,6 +343,11 @@ body.card-focus .share-card{transform:rotate(0deg) scale(1.04)}
   .lost-btns,.won-btns{flex-direction:column;width:100%}
   .lost-btns button,.won-btns button{width:100%}
   .count-side{display:none}
+}
+
+@media (max-width:600px){
+  /* two spans interleave mid-sentence when they wrap side by side */
+  .meta-row,.lost-meta,.won-meta{flex-direction:column;gap:6px}
 }
 
 @media (prefers-reduced-motion:reduce){
@@ -940,6 +946,7 @@ function renderMicPanel(){
     $('mic-say').innerHTML =
       '<span class="display headline">No mic, no game</span><br><br>'+
       'Nothing is recorded or uploaded. The mic is only read to tell talking from silence, inside this tab.<br><br>'+
+      'Reading this inside the Instagram or TikTok app? Its built-in browser blocks the mic. Tap the three dots and choose Open in browser.<br><br>'+
       '<button class="retry-btn" id="mic-retry">Try again</button>';
     $('mic-retry').onclick = async ()=>{ await openMic(); renderLobby(); };
     $('go').disabled = true;
