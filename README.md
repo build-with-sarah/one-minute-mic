@@ -1,6 +1,6 @@
 # One Minute Mic
 
-You get a random topic and 60 seconds to talk about it out loud. The mic listens for one thing only: whether you are still talking. Go silent longer than your pause setting and you are buzzed out. Survive the full minute and your day streak goes up.
+You get a random topic and 60 seconds to talk about it out loud. The mic listens for one thing only: whether you are still talking. Go silent for more than a second and a half and you are buzzed out. Survive the full minute and your day streak goes up.
 
 **[Play it in your browser](https://build-with-sarah.github.io/one-minute-mic/)**
 
