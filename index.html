@@ -1001,6 +1001,13 @@ function renderTopic(){
 
 /* ---------- 8. COUNTDOWN ---------- */
 async function countdown(){
+  // The replay buttons skip the lobby, so the go-button gate cannot see them.
+  // Without a mic the round would freeze: send them back to the panel that fixes it.
+  if (!state.micReady){
+    show('lobby'); renderLobby();
+    openMic().then(renderLobby);
+    return;
+  }
   show('count');
   $('count-topic').textContent = state.topic;
   calibrate(); // re-read the room right before the round
