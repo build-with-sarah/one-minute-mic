@@ -311,13 +311,16 @@ body.card-focus .share-card{transform:rotate(0deg) scale(1.04)}
    NARROW : one column, proven at 620x900 (board 07)
    ===================================================================== */
 @media (max-width:1000px){
-  /* end screens too: on short phones the share card and buttons fall below the fold */
-  #s-lobby,#s-lost,#s-won{height:auto;min-height:100dvh;overflow-y:auto}
+  /* end screens too: on short phones the share card and buttons fall below the fold.
+     s-topic joins defensively for long topics inside short in-app-browser viewports.
+     live and count stay locked: nothing to scroll to mid-round. */
+  #s-lobby,#s-topic,#s-lost,#s-won{height:auto;min-height:100dvh;overflow-y:auto}
   .lobby-mid{grid-template-columns:1fr;gap:28px;align-content:start}
   .lobby-head{flex-direction:column}
   .streak-badge .num{font-size:52px}
   .lobby-foot{flex-direction:column;align-items:flex-start;gap:18px}
-  .keys{display:none}
+  /* lobby only: on the live screen this chip is the ONLY way to bail on a phone */
+  #s-lobby .keys{display:none}
 
   #s-live{gap:20px;padding:32px}
   .live-head{flex-direction:column;align-items:stretch;gap:10px}
@@ -537,7 +540,7 @@ nobody is listening but you</p>
   </div>
   <div class="won-foot">
     <span id="won-tomorrow"></span>
-    <span class="keys"><span class="key invert"><kbd>Space</kbd> go again</span><span class="key invert"><kbd>B</kbd> buzz me out</span></span>
+    <span class="keys"><span class="key invert"><kbd>Space</kbd> go again</span></span>
   </div>
 </section>
 
@@ -826,15 +829,29 @@ async function openMic(){
   if (state.micReady) return true;
   if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){ state.micDenied=true; return false; }
   try{
-    const stream = await navigator.mediaDevices.getUserMedia({
-      audio:{ echoCancellation:false, noiseSuppression:false, autoGainControl:false }
-    });
+    // Some in-app browsers leave the permission promise pending forever:
+    // give up after 12s and show the blocked panel, whose retry starts over.
+    const stream = await Promise.race([
+      navigator.mediaDevices.getUserMedia({
+        audio:{ echoCancellation:false, noiseSuppression:false, autoGainControl:false }
+      }),
+      new Promise((_,reject)=>setTimeout(()=>reject(new Error('mic timeout')), 12000))
+    ]);
     audioCtx = new (window.AudioContext||window.webkitAudioContext)();
     analyser = audioCtx.createAnalyser();
     analyser.fftSize = 1024;
     buffer = new Uint8Array(analyser.fftSize);
     audioCtx.createMediaStreamSource(stream).connect(analyser);
     state.micReady = true; state.micDenied = false;
+    // AirPods switching or device sleep can kill the track mid-round; without
+    // this the analyser reads dead air and the buzz blames the player.
+    const track = stream.getAudioTracks()[0];
+    if (track) track.addEventListener('ended', ()=>{
+      state.micReady=false; state.micDenied=true;
+      if (state.screen==='live' && state.running){
+        lose((performance.now()-state.startedAt)/1000, 0, 'mic');
+      } else if (state.screen==='lobby'){ renderLobby(); }
+    });
     if (audioCtx.state === 'suspended'){
       const kick = () => audioCtx.resume();
       window.addEventListener('pointerdown', kick, {once:true});
@@ -952,8 +969,11 @@ function renderMicPanel(){
     $('go').disabled = true;
   } else {
     panel.classList.remove('blocked');
-    $('mic-say').textContent = 'Say anything. If the bars move, it can hear you.';
-    $('go').disabled = false;
+    $('mic-say').textContent = state.micReady
+      ? 'Say anything. If the bars move, it can hear you.'
+      : 'Waiting for mic permission. Allow it and the bars come alive.';
+    // A round without a working mic freezes forever: go stays off until the mic is real.
+    $('go').disabled = !state.micReady;
   }
 }
 
@@ -1115,16 +1135,19 @@ function lose(elapsed, quiet, selfBuzz){
   store.write({worstExit:Math.round(worst*10)/10, runNow:0});
 
   $('lost-topic').textContent=state.topic;
-  $('lost-at').textContent=(selfBuzz?'self-buzz at ':'silence detected at ')+fmtClock(elapsed);
+  $('lost-at').textContent=(selfBuzz==='mic'?'mic lost at ':selfBuzz?'self-buzz at ':'silence detected at ')+fmtClock(elapsed);
 
   let headline;
-  if (selfBuzz) headline='YOU RANG THE BELL.';
+  if (selfBuzz==='mic') headline='THE MIC DROPPED.';
+  else if (selfBuzz) headline='YOU RANG THE BELL.';
   else if (sec<10) headline=(ONES[sec]||sec)+' SECOND'+(sec===1?'':'S')+'. '+(ONES[sec]||sec)+'.';
   else if (sec>=50) headline='SO CLOSE IT HURTS.';
   else headline=sec+' SECONDS.';
   $('lost-headline').textContent=headline;
 
-  $('lost-body').textContent = selfBuzz
+  $('lost-body').textContent = selfBuzz==='mic'
+    ? 'Your microphone disconnected mid-round. Not your fault. Reconnect it and run it back.'
+    : selfBuzz
     ? 'You buzzed yourself out at '+fmtClock(elapsed).replace('00:','')+' seconds. Honourable, technically.'
     : 'You went quiet for '+state.tol.toFixed(1)+' seconds. The deal was '+state.tol.toFixed(1)+'. Rules are rules.';
 
@@ -1140,6 +1163,7 @@ function lose(elapsed, quiet, selfBuzz){
 function win(){
   state.running=false;
   ding();
+  checkStreak(); // a tab left open across midnight must not extend a dead streak
   const s=store.read();
   const today=todayStr();
   let streak=s.streak||0;
@@ -1227,10 +1251,31 @@ document.addEventListener('keydown', e=>{
   }
 });
 
-/* The "Space · go again" hints read as buttons, so a tap does what the key does. */
+/* Backgrounding pauses frame() but not the wall clock: a locked screen or a
+   notification would land as one giant "silence" and buzz the player out the
+   moment they return. Shift both time anchors forward by the hidden gap. */
+let hiddenAt=null;
+document.addEventListener('visibilitychange',()=>{
+  if (!(state.screen==='live' && state.running)){ hiddenAt=null; return; }
+  if (document.hidden){ hiddenAt=performance.now(); }
+  else if (hiddenAt!=null){
+    const gap=performance.now()-hiddenAt;
+    state.startedAt+=gap; state.lastVoice+=gap;
+    hiddenAt=null;
+  }
+});
+
+/* The key hints read as buttons, so let them be buttons: a tap does what the key does. */
 document.querySelectorAll('.key').forEach(k=>{
   const kbd=k.querySelector('kbd');
-  if (kbd && kbd.textContent==='Space'){ k.style.cursor='pointer'; k.onclick=spaceAction; }
+  if (!kbd) return;
+  if (kbd.textContent==='Space'){ k.style.cursor='pointer'; k.onclick=spaceAction; }
+  if (kbd.textContent==='B'){ k.style.cursor='pointer'; k.onclick=()=>{
+    if (state.screen==='live' && state.running){
+      const elapsed=(performance.now()-state.startedAt)/1000;
+      lose(elapsed, 0, true);
+    }
+  }; }
 });
 
 /* ---------- 12. BOOT ---------- */
@@ -1276,10 +1321,14 @@ document.querySelectorAll('.key').forEach(k=>{
       $('lost-attempts').textContent='7';
       show('lost');
     } else if (dev==='won'){
+      // renderWon reads the store, so write demo numbers, render, then put the
+      // visitor's REAL record back: a screenshot URL must never eat a streak.
+      const real=localStorage.getItem('one-minute-mic');
       store.write({streak:13,cleanMinutes:42,closeCalls:3,cleanDates:[daysAgoStr(6),daysAgoStr(5),daysAgoStr(4),daysAgoStr(3),daysAgoStr(2),daysAgoStr(1),todayStr()]});
       bumpDayCounter('attempts',8);
       state.longestPause=1.3;
       renderWon(); show('won');
+      try{ real==null ? localStorage.removeItem('one-minute-mic') : localStorage.setItem('one-minute-mic', real); }catch{}
     } else if (dev==='count'){
       $('count-topic').textContent=state.topic;
       $('count-big').textContent='2';
